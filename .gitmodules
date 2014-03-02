@@ -1,0 +1,3 @@
+[submodule "OpenTKTK"]
+	path = OpenTKTK
+	url = git@github.com:Metapyziks/OpenTKTK.git
