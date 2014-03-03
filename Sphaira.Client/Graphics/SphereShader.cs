@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
-using OpenTK.Graphics.OpenGL;
+﻿using OpenTK.Graphics.OpenGL;
+
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
-using Sphaira.Client.Geometry;
+
+using Sphaira.Shared.Geometry;
 
 namespace Sphaira.Client.Graphics
 {
-    public class EllipseShader : ShaderProgram3D<SphereCamera>
+    public class SphereShader : ShaderProgram3D<SphereCamera>
     {
-        public EllipseShader()
+        public SphereShader()
         {
             var vert = new ShaderBuilder(ShaderType.VertexShader, false);
             vert.AddUniform(ShaderVarType.Mat4, "view");
@@ -42,10 +38,11 @@ namespace Sphaira.Client.Graphics
             ";
 
             var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
-            frag.AddUniform(ShaderVarType.Float, "radius");
-            frag.AddUniform(ShaderVarType.Vec3, "camera");
             frag.AddUniform(ShaderVarType.Mat4, "view");
             frag.AddUniform(ShaderVarType.Mat4, "proj");
+            frag.AddUniform(ShaderVarType.Vec3, "camera");
+            frag.AddUniform(ShaderVarType.Float, "radius");
+            frag.AddUniform(ShaderVarType.Vec3, "sun");
             frag.FragOutIdentifier = "out_colour";
             frag.Logic = @"
                 void main(void)
@@ -64,7 +61,13 @@ namespace Sphaira.Client.Graphics
 
                     gl_FragDepth = (fin.z / fin.w + 1) / 2;
 
-                    out_colour = vec4(int(pos.x) & 1, int(pos.y) & 1, int(pos.z) & 1, 1);
+                    vec3 normal = normalize(pos);
+                    float light = max(0, dot(normal, -normalize(sun)));
+                    float spclr = pow(max(0, dot(reflect(normalize(sun), normal), normalize(camera))), 8);
+                    float check = ((int(pos.x) ^ int(pos.y) ^ int(pos.z)) & 1) * 0.125 + 0.875;
+                    vec3 clr = vec3(check, check, check) * light;
+
+                    out_colour = vec4(clr * 0.75 + 0.25 * vec3(1, 1, 1) * spclr, 1);
                 }
             ";
 
@@ -80,11 +83,13 @@ namespace Sphaira.Client.Graphics
         {
             AddUniform("view");
             AddUniform("proj");
+            AddUniform("camera");
 
             AddAttribute("in_vertex", 2);
 
-            AddUniform("camera");
             AddUniform("radius");
+
+            AddUniform("sun");
         }
 
         protected override void OnBegin()

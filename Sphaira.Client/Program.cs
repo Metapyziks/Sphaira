@@ -1,17 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+
 using OpenTKTK.Utils;
-using Sphaira.Client.Geometry;
+
 using Sphaira.Client.Graphics;
+using Sphaira.Shared.Geometry;
 
 namespace Sphaira.Client
 {
@@ -26,8 +25,8 @@ namespace Sphaira.Client
             return 0;
         }
 
-        private TestShader _testShader;
-        private EllipseShader _ellipseShader;
+        private SphereCamera _camera;
+        private SphereShader _sphereShader;
         private Sphere _sphere;
         private Stopwatch _timer;
 
@@ -42,20 +41,17 @@ namespace Sphaira.Client
         {
             GL.Viewport(ClientRectangle);
 
-            _testShader.Camera.SetScreenSize(Width, Height);
+            _camera.SetScreenSize(Width, Height);
         }
 
         protected override void OnLoad(EventArgs e)
         {
             _sphere = new Sphere(32f, 1024f);
 
-            var camera = new SphereCamera(Width, Height, _sphere, 64f);
+            _camera = new SphereCamera(Width, Height, _sphere, 32f); //1.6625f);
 
-            _testShader = new TestShader();
-            _testShader.Camera = camera;
-
-            _ellipseShader = new EllipseShader();
-            _ellipseShader.Camera = camera;
+            _sphereShader = new SphereShader();
+            _sphereShader.Camera = _camera;
 
             _timer = new Stopwatch();
             _timer.Start();
@@ -66,10 +62,10 @@ namespace Sphaira.Client
                 if (!Focused || !_captureMouse) return;
                 if (Cursor.Position.X == centre.X && Cursor.Position.Y == centre.Y) return;
 
-                camera.Yaw += (Cursor.Position.X - centre.X) / 360f;
-                camera.Pitch += (Cursor.Position.Y - centre.Y) / 360f;
+                _camera.Yaw += (Cursor.Position.X - centre.X) / 360f;
+                _camera.Pitch += (Cursor.Position.Y - centre.Y) / 360f;
 
-                camera.Pitch = Tools.Clamp(camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
+                _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
 
                 Cursor.Position = centre;
             };
@@ -88,8 +84,8 @@ namespace Sphaira.Client
                         if (_captureMouse) Cursor.Hide(); else Cursor.Show();
                         break;
                     case Key.Space:
-                        if (_testShader.Camera.Altitude <= _testShader.Camera.EyeHeight) {
-                            _testShader.Camera.Jump(32f);
+                        if (_camera.Altitude <= _camera.EyeHeight) {
+                            _camera.Jump(8f);
                         }
                         break;
                 }
@@ -99,7 +95,6 @@ namespace Sphaira.Client
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             var move = Vector3.Zero;
-            var camera = _testShader.Camera;
 
             if (Keyboard[Key.W]) move -= Vector3.UnitZ;
             if (Keyboard[Key.S]) move += Vector3.UnitZ;
@@ -107,7 +102,7 @@ namespace Sphaira.Client
             if (Keyboard[Key.D]) move += Vector3.UnitX;
 
             if (move.LengthSquared > 0f) {
-                var rot = Matrix4.CreateRotationY(-camera.Yaw);
+                var rot = Matrix4.CreateRotationY(-_camera.Yaw);
 
                 move = Vector3.Transform(move.Normalized(), rot);
 
@@ -117,14 +112,14 @@ namespace Sphaira.Client
                     move *= 2f;
                 }
 
-                if (camera.Altitude > camera.EyeHeight) {
+                if (_camera.Altitude > _camera.EyeHeight) {
                     move *= 1f / 8f;
                 }
 
-                camera.Push(move.Xz);
+                _camera.Push(move.Xz);
             }
 
-            camera.UpdateFrame(e);
+            _camera.UpdateFrame(e);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -134,10 +129,8 @@ namespace Sphaira.Client
             var ang = Quaternion.FromAxisAngle(new Vector3(0f, 1f, 0f),
                 (float) (_timer.Elapsed.TotalSeconds * Math.PI / 10.0));
 
-            _testShader.SetUniform("sun", Vector3.Transform(new Vector3(_sphere.Radius + 512f, 0f, 0f), ang));
-
-            _sphere.Render(_testShader);
-            _ellipseShader.Render(_sphere);
+            _sphereShader.SetUniform("sun", Vector3.Transform(Vector3.UnitX, ang));
+            _sphereShader.Render(_sphere);
 
             SwapBuffers();
         }

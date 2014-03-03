@@ -48,11 +48,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Geometry\Sphere.cs" />
-    <Compile Include="Geometry\SphereVerticesGenerator.cs" />
-    <Compile Include="Graphics\EllipseShader.cs" />
+    <Compile Include="Graphics\SphereShader.cs" />
     <Compile Include="Graphics\SphereCamera.cs" />
-    <Compile Include="Graphics\TestShader.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

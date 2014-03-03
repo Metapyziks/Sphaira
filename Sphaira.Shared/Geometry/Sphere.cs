@@ -2,7 +2,7 @@
 
 namespace Sphaira.Shared.Geometry
 {
-    public abstract class Sphere
+    public class Sphere
     {
         public const float G = 0.00667384f;
 
@@ -44,7 +44,7 @@ namespace Sphaira.Shared.Geometry
             }
         }
 
-        protected Sphere(float radius, float density)
+        public Sphere(float radius, float density)
         {
             Radius = radius;
             Density = density;
