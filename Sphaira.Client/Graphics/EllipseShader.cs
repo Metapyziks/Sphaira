@@ -21,6 +21,7 @@ namespace Sphaira.Client.Graphics
             vert.AddUniform(ShaderVarType.Vec3, "camera");
             vert.AddUniform(ShaderVarType.Float, "radius");
             vert.AddAttribute(ShaderVarType.Vec2, "in_vertex");
+            vert.AddVarying(ShaderVarType.Vec3, "var_position");
             vert.Logic = @"
                 void main(void)
                 {
@@ -34,16 +35,31 @@ namespace Sphaira.Client.Graphics
                     vec3 up = normalize(cross(camera, (view * vec4(0, 0, 1, 0)).xyz)) * opp;
                     vec3 right = normalize(cross(camera, up)) * opp;
 
+                    var_position = vec3(center + in_vertex.x * right + in_vertex.y * up) / radius;
+
                     gl_Position = proj * view * vec4(center + in_vertex.x * right + in_vertex.y * up, 1);
                 }
             ";
 
             var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
+            frag.AddUniform(ShaderVarType.Float, "radius");
+            frag.AddUniform(ShaderVarType.Vec3, "camera");
             frag.FragOutIdentifier = "out_colour";
             frag.Logic = @"
                 void main(void)
                 {
-                    out_colour = vec4(1, 0, 0, 1);
+                    float len2 = dot(var_position, var_position);
+
+                    if (len2 > 1) discard;
+
+                    vec3 l = normalize(camera / radius - var_position);
+
+                    float b = dot(l, var_position);
+                    float d = -b + sqrt(b * b - len2 + 1);
+
+                    vec3 pos = (var_position + l * d) * radius;
+
+                    out_colour = vec4(int(pos.x) & 1, int(pos.y) & 1, int(pos.z) & 1, 1);
                 }
             ";
 
@@ -76,7 +92,7 @@ namespace Sphaira.Client.Graphics
                 SetUniform("camera", Camera.Position);
             }
 
-            GL.Enable(EnableCap.DepthTest);
+            //GL.Enable(EnableCap.DepthTest);
         }
 
         public void Render(Sphere sphere)
@@ -90,7 +106,7 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnEnd()
         {
-            GL.Disable(EnableCap.DepthTest);
+            //GL.Disable(EnableCap.DepthTest);
         }
     }
 }
