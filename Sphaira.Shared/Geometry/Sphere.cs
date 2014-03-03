@@ -4,6 +4,8 @@ namespace Sphaira.Shared.Geometry
 {
     public abstract class Sphere
     {
+        public const float G = 0.00667384f;
+
         private float _volume;
         private float _mass;
 
@@ -49,6 +51,12 @@ namespace Sphaira.Shared.Geometry
 
             OnRadiusChanged();
             OnDensityChanged();
+        }
+
+        public float GetGravitationalAcceleration(float altitude)
+        {
+            var dist = altitude + Radius;
+            return G * Mass / (dist * dist);
         }
 
         protected virtual void OnRadiusChanged()

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using OpenTK;
 using OpenTKTK.Scene;
+using Sphaira.Client.Geometry;
 
 namespace Sphaira.Client.Graphics
 {
@@ -12,7 +13,7 @@ namespace Sphaira.Client.Graphics
     {
         private Quaternion _sphereRot;
 
-        public float Radius { get; private set; }
+        public Sphere Sphere { get; private set; }
 
         public float Altitude { get; set; }
 
@@ -20,10 +21,10 @@ namespace Sphaira.Client.Graphics
 
         private Vector3 _velocity;
 
-        public SphereCamera(int width, int height, float radius, float eyeHeight)
+        public SphereCamera(int width, int height, Sphere sphere, float eyeHeight)
             : base(width, height)
         {
-            Radius = radius;
+            Sphere = sphere;
             EyeHeight = eyeHeight;
             Altitude = EyeHeight;
 
@@ -41,7 +42,7 @@ namespace Sphaira.Client.Graphics
         {
             var yRot = Matrix4.CreateRotationY(Yaw);
             var xRot = Matrix4.CreateRotationX(Pitch);
-            var trns = Matrix4.CreateTranslation(-Vector3.UnitY * (Radius + Altitude));
+            var trns = Matrix4.CreateTranslation(-Vector3.UnitY * (Sphere.Radius + Altitude));
             var sRot = Matrix4.CreateFromQuaternion(_sphereRot);
 
             // Combine the matrices to find the view transformation
@@ -68,7 +69,7 @@ namespace Sphaira.Client.Graphics
                 var norm = new Vector3(0f, 1f, 0f);
 
                 var axis = Vector3.Cross(norm, -vec3);
-                var arc = vel.Length / Radius;
+                var arc = vel.Length / Sphere.Radius;
 
                 _sphereRot = Quaternion.Multiply(Quaternion.FromAxisAngle(axis, arc), _sphereRot);
 
@@ -80,7 +81,7 @@ namespace Sphaira.Client.Graphics
 
             if (Altitude > EyeHeight || _velocity.Y > 0f) {
                 Altitude += _velocity.Y * (float) e.Time;
-                _velocity.Y -= 9.81f * (float) e.Time;
+                _velocity.Y -= Sphere.GetGravitationalAcceleration(Altitude) * (float) e.Time;
             } else {
                 Altitude = EyeHeight;
                 _velocity.Y = 0f;

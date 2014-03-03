@@ -46,9 +46,9 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(256f, 1f);
+            _sphere = new Sphere(256f, 1024f);
 
-            var camera = new SphereCamera(Width, Height, _sphere.Radius, 4f);
+            var camera = new SphereCamera(Width, Height, _sphere, 4f);
 
             _shader = new TestShader();
             _shader.Camera = camera;
@@ -85,7 +85,7 @@ namespace Sphaira.Client
                         break;
                     case Key.Space:
                         if (_shader.Camera.Altitude <= _shader.Camera.EyeHeight) {
-                            _shader.Camera.Jump(64f);
+                            _shader.Camera.Jump(8f);
                         }
                         break;
                 }
@@ -108,9 +108,13 @@ namespace Sphaira.Client
                 move = Vector3.Transform(move.Normalized(), rot);
 
                 if (Keyboard[Key.ShiftLeft]) {
-                    move *= 16f;
-                } else {
                     move *= 4f;
+                } else {
+                    move *= 2f;
+                }
+
+                if (camera.Altitude > camera.EyeHeight) {
+                    move *= 1f / 8f;
                 }
 
                 camera.Push(move.Xz);
