@@ -2,13 +2,11 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
-
 using OpenTK;
+using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
-
 using OpenTKTK.Utils;
-
 using Sphaira.Client.Graphics;
 using Sphaira.Shared.Geometry;
 
@@ -32,7 +30,7 @@ namespace Sphaira.Client
 
         private bool _captureMouse;
 
-        public Program() : base(1280, 720)
+        public Program() : base(1280, 720, new GraphicsMode(new ColorFormat(8, 8, 8, 0), 32))
         {
             Title = "Sphaira";
         }
@@ -46,9 +44,9 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(32f, 1024f);
+            _sphere = new Sphere(8f, 1024f);
 
-            _camera = new SphereCamera(Width, Height, _sphere, 32f); //1.6625f);
+            _camera = new SphereCamera(Width, Height, _sphere, 1.6625f);
 
             _sphereShader = new SphereShader();
             _sphereShader.Camera = _camera;
@@ -86,6 +84,17 @@ namespace Sphaira.Client
                     case Key.Space:
                         if (_camera.Altitude <= _camera.EyeHeight) {
                             _camera.Jump(8f);
+                        }
+                        break;
+                    case Key.Z:
+                        _camera = new SphereCamera(Width, Height, _sphere, _sphere.Radius);
+                        _sphereShader.Camera = _camera;
+                        break;
+                    case Key.F11:
+                        if (WindowState == WindowState.Fullscreen) {
+                            WindowState = WindowState.Normal;
+                        } else {
+                            WindowState = WindowState.Fullscreen;
                         }
                         break;
                 }
@@ -126,10 +135,9 @@ namespace Sphaira.Client
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            var ang = Quaternion.FromAxisAngle(new Vector3(0f, 1f, 0f),
-                (float) (_timer.Elapsed.TotalSeconds * Math.PI / 10.0));
-
-            _sphereShader.SetUniform("sun", Vector3.Transform(Vector3.UnitX, ang));
+            _sphere.Radius = 16f + (float) Math.Sin(_timer.Elapsed.TotalSeconds / 4.0) * 8f;
+            
+            _sphereShader.SetUniform("sun", -Vector3.UnitY);
             _sphereShader.Render(_sphere);
 
             SwapBuffers();

@@ -45,7 +45,7 @@ namespace Sphaira.Client.Graphics
         }
 
         public SphereCamera(int width, int height, Sphere sphere, float eyeHeight)
-            : base(width, height)
+            : base(width, height, MathHelper.PiOver3, 1f / 8f, 65536f)
         {
             Sphere = sphere;
             EyeHeight = eyeHeight;
@@ -53,12 +53,6 @@ namespace Sphaira.Client.Graphics
 
             _sphereRot = new Quaternion(Vector3.UnitY, 0f);
             _velocity = Vector3.Zero;
-        }
-
-        protected override void OnUpdatePerspectiveMatrix(ref OpenTK.Matrix4 matrix)
-        {
-            matrix = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver3,
-                (float) Width / Height, 1f / 64f, 256f);
         }
 
         protected override void OnUpdateViewMatrix(ref Matrix4 matrix)

@@ -6,13 +6,23 @@ namespace Sphaira.Shared.Geometry
     {
         public const float G = 0.00667384f;
 
+        private float _radius;
+
         private float _volume;
         private float _mass;
 
         private bool _volumeChanged;
         private bool _massChanged;
 
-        public float Radius { get; private set; }
+        public float Radius
+        {
+            get { return _radius; }
+            set
+            {
+                _radius = value;
+                OnRadiusChanged();
+            }
+        }
 
         public float Density { get; private set; }
 
