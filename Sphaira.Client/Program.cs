@@ -49,7 +49,7 @@ namespace Sphaira.Client
         {
             _sphere = new Sphere(32f, 1024f);
 
-            var camera = new SphereCamera(Width, Height, _sphere, 4f);
+            var camera = new SphereCamera(Width, Height, _sphere, 64f);
 
             _testShader = new TestShader();
             _testShader.Camera = camera;

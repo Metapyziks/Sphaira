@@ -44,6 +44,8 @@ namespace Sphaira.Client.Graphics
             var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
             frag.AddUniform(ShaderVarType.Float, "radius");
             frag.AddUniform(ShaderVarType.Vec3, "camera");
+            frag.AddUniform(ShaderVarType.Mat4, "view");
+            frag.AddUniform(ShaderVarType.Mat4, "proj");
             frag.FragOutIdentifier = "out_colour";
             frag.Logic = @"
                 void main(void)
@@ -58,6 +60,9 @@ namespace Sphaira.Client.Graphics
                     float d = -b + sqrt(b * b - len2 + 1);
 
                     vec3 pos = (var_position + l * d) * radius;
+                    vec4 fin = proj * view * vec4(pos, 1);
+
+                    gl_FragDepth = (fin.z / fin.w + 1) / 2;
 
                     out_colour = vec4(int(pos.x) & 1, int(pos.y) & 1, int(pos.z) & 1, 1);
                 }
@@ -92,7 +97,7 @@ namespace Sphaira.Client.Graphics
                 SetUniform("camera", Camera.Position);
             }
 
-            //GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.DepthTest);
         }
 
         public void Render(Sphere sphere)
@@ -106,7 +111,7 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnEnd()
         {
-            //GL.Disable(EnableCap.DepthTest);
+            GL.Disable(EnableCap.DepthTest);
         }
     }
 }
