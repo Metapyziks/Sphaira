@@ -3,7 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.21005.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sphaira", "Sphaira\Sphaira.csproj", "{7F7F89D4-90B8-419B-91A8-475A6297BE66}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OpenTKTK", "OpenTKTK\OpenTKTK.csproj", "{0FC36AF8-BB55-403B-A82D-F0D852C40426}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sphaira.Server", "Sphaira.Server\Sphaira.Server.csproj", "{7082D011-A9F8-4C5B-8B03-106C7A6AEB8F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sphaira.Client", "Sphaira.Client\Sphaira.Client.csproj", "{F8A10B83-DAC5-408E-B392-605788665137}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sphaira.Shared", "Sphaira.Shared\Sphaira.Shared.csproj", "{3E415845-BD2B-4388-983E-3C29D4FD610C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +17,22 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{7F7F89D4-90B8-419B-91A8-475A6297BE66}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{7F7F89D4-90B8-419B-91A8-475A6297BE66}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{7F7F89D4-90B8-419B-91A8-475A6297BE66}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{7F7F89D4-90B8-419B-91A8-475A6297BE66}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FC36AF8-BB55-403B-A82D-F0D852C40426}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FC36AF8-BB55-403B-A82D-F0D852C40426}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FC36AF8-BB55-403B-A82D-F0D852C40426}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FC36AF8-BB55-403B-A82D-F0D852C40426}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7082D011-A9F8-4C5B-8B03-106C7A6AEB8F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7082D011-A9F8-4C5B-8B03-106C7A6AEB8F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7082D011-A9F8-4C5B-8B03-106C7A6AEB8F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7082D011-A9F8-4C5B-8B03-106C7A6AEB8F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F8A10B83-DAC5-408E-B392-605788665137}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F8A10B83-DAC5-408E-B392-605788665137}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F8A10B83-DAC5-408E-B392-605788665137}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F8A10B83-DAC5-408E-B392-605788665137}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E415845-BD2B-4388-983E-3C29D4FD610C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E415845-BD2B-4388-983E-3C29D4FD610C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E415845-BD2B-4388-983E-3C29D4FD610C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E415845-BD2B-4388-983E-3C29D4FD610C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

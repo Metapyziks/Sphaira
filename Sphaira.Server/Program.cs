@@ -8,5 +8,9 @@ namespace Sphaira.Server
 {
     public class Program
     {
+        public static int Main(String[] args)
+        {
+            return 0;
+        }
     }
 }
