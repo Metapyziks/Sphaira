@@ -21,6 +21,30 @@ namespace Sphaira.Client.Graphics
 
         private Vector3 _velocity;
 
+        public override Vector3 Position
+        {
+            get { return Vector3.Transform((Altitude + Sphere.Radius) * Vector3.UnitY, _sphereRot.Inverted()); }
+            set { throw new NotImplementedException(); }
+        }
+
+        public override float X
+        {
+            get { return Position.X; }
+            set { throw new NotImplementedException(); }
+        }
+
+        public override float Y
+        {
+            get { return Position.Y; }
+            set { throw new NotImplementedException(); }
+        }
+
+        public override float Z
+        {
+            get { return Position.Z; }
+            set { throw new NotImplementedException(); }
+        }
+
         public SphereCamera(int width, int height, Sphere sphere, float eyeHeight)
             : base(width, height)
         {

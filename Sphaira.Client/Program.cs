@@ -26,7 +26,8 @@ namespace Sphaira.Client
             return 0;
         }
 
-        private TestShader _shader;
+        private TestShader _testShader;
+        private EllipseShader _ellipseShader;
         private Sphere _sphere;
         private Stopwatch _timer;
 
@@ -41,17 +42,20 @@ namespace Sphaira.Client
         {
             GL.Viewport(ClientRectangle);
 
-            _shader.Camera.SetScreenSize(Width, Height);
+            _testShader.Camera.SetScreenSize(Width, Height);
         }
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(256f, 1024f);
+            _sphere = new Sphere(32f, 1024f);
 
             var camera = new SphereCamera(Width, Height, _sphere, 4f);
 
-            _shader = new TestShader();
-            _shader.Camera = camera;
+            _testShader = new TestShader();
+            _testShader.Camera = camera;
+
+            _ellipseShader = new EllipseShader();
+            _ellipseShader.Camera = camera;
 
             _timer = new Stopwatch();
             _timer.Start();
@@ -84,8 +88,8 @@ namespace Sphaira.Client
                         if (_captureMouse) Cursor.Hide(); else Cursor.Show();
                         break;
                     case Key.Space:
-                        if (_shader.Camera.Altitude <= _shader.Camera.EyeHeight) {
-                            _shader.Camera.Jump(8f);
+                        if (_testShader.Camera.Altitude <= _testShader.Camera.EyeHeight) {
+                            _testShader.Camera.Jump(32f);
                         }
                         break;
                 }
@@ -95,7 +99,7 @@ namespace Sphaira.Client
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
             var move = Vector3.Zero;
-            var camera = _shader.Camera;
+            var camera = _testShader.Camera;
 
             if (Keyboard[Key.W]) move -= Vector3.UnitZ;
             if (Keyboard[Key.S]) move += Vector3.UnitZ;
@@ -130,9 +134,10 @@ namespace Sphaira.Client
             var ang = Quaternion.FromAxisAngle(new Vector3(0f, 1f, 0f),
                 (float) (_timer.Elapsed.TotalSeconds * Math.PI / 10.0));
 
-            _shader.SetUniform("sun", Vector3.Transform(new Vector3(_sphere.Radius + 512f, 0f, 0f), ang));
+            _testShader.SetUniform("sun", Vector3.Transform(new Vector3(_sphere.Radius + 512f, 0f, 0f), ang));
 
-            _sphere.Render(_shader);
+            _sphere.Render(_testShader);
+            _ellipseShader.Render(_sphere);
 
             SwapBuffers();
         }
