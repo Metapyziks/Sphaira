@@ -16,13 +16,19 @@ namespace Sphaira.Client.Graphics
 
         public float Altitude { get; set; }
 
-        public SphereCamera(int width, int height, float radius)
+        public float EyeHeight { get; private set; }
+
+        private Vector3 _velocity;
+
+        public SphereCamera(int width, int height, float radius, float eyeHeight)
             : base(width, height)
         {
             Radius = radius;
-            Altitude = 2f;
+            EyeHeight = eyeHeight;
+            Altitude = EyeHeight;
 
             _sphereRot = new Quaternion(Vector3.UnitY, 0f);
+            _velocity = Vector3.Zero;
         }
 
         protected override void OnUpdatePerspectiveMatrix(ref OpenTK.Matrix4 matrix)
@@ -42,15 +48,43 @@ namespace Sphaira.Client.Graphics
             matrix = Matrix4.Mult(sRot, Matrix4.Mult(trns, Matrix4.Mult(yRot, xRot)));
         }
 
-        public void Move(Vector2 vec)
+        public void Push(Vector2 vec)
         {
-            var vec3 = new Vector3(vec.X, 0f, vec.Y).Normalized();
-            var norm = new Vector3(0f, 1f, 0f);
+            _velocity.X += vec.X;
+            _velocity.Z += vec.Y;
+        }
 
-            var axis = Vector3.Cross(norm, -vec3);
-            var arc = vec.Length / Radius;
+        public void Jump(float vel)
+        {
+            _velocity.Y += vel;
+        }
 
-            _sphereRot = Quaternion.Multiply(Quaternion.FromAxisAngle(axis, arc), _sphereRot);
+        public void UpdateFrame(FrameEventArgs e)
+        {
+            var vel = _velocity.Xz * (float) e.Time;
+
+            if (vel.LengthSquared > 0f) {
+                var vec3 = new Vector3(vel.X, 0f, vel.Y).Normalized();
+                var norm = new Vector3(0f, 1f, 0f);
+
+                var axis = Vector3.Cross(norm, -vec3);
+                var arc = vel.Length / Radius;
+
+                _sphereRot = Quaternion.Multiply(Quaternion.FromAxisAngle(axis, arc), _sphereRot);
+
+                if (Altitude <= EyeHeight) {
+                    _velocity.X *= 0.8f;
+                    _velocity.Z *= 0.8f;
+                }
+            }
+
+            if (Altitude > EyeHeight || _velocity.Y > 0f) {
+                Altitude += _velocity.Y * (float) e.Time;
+                _velocity.Y -= 9.81f * (float) e.Time;
+            } else {
+                Altitude = EyeHeight;
+                _velocity.Y = 0f;
+            }
 
             InvalidateViewMatrix();
         }

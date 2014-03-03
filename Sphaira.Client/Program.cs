@@ -48,8 +48,7 @@ namespace Sphaira.Client
         {
             _sphere = new Sphere(256f, 1f);
 
-            var camera = new SphereCamera(Width, Height, _sphere.Radius);
-            camera.Altitude = 128f;
+            var camera = new SphereCamera(Width, Height, _sphere.Radius, 4f);
 
             _shader = new TestShader();
             _shader.Camera = camera;
@@ -84,6 +83,11 @@ namespace Sphaira.Client
                         _captureMouse = !_captureMouse;
                         if (_captureMouse) Cursor.Hide(); else Cursor.Show();
                         break;
+                    case Key.Space:
+                        if (_shader.Camera.Altitude <= _shader.Camera.EyeHeight) {
+                            _shader.Camera.Jump(64f);
+                        }
+                        break;
                 }
             };
         }
@@ -104,13 +108,15 @@ namespace Sphaira.Client
                 move = Vector3.Transform(move.Normalized(), rot);
 
                 if (Keyboard[Key.ShiftLeft]) {
-                    move *= (float) (_sphere.Radius * 0.5f * e.Time);
+                    move *= 16f;
                 } else {
-                    move *= (float) (8f * e.Time);
+                    move *= 4f;
                 }
 
-                camera.Move(move.Xz);
+                camera.Push(move.Xz);
             }
+
+            camera.UpdateFrame(e);
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
