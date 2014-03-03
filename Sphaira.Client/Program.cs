@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -27,6 +28,7 @@ namespace Sphaira.Client
 
         private TestShader _shader;
         private Sphere _sphere;
+        private Stopwatch _timer;
 
         private bool _captureMouse;
 
@@ -47,11 +49,13 @@ namespace Sphaira.Client
             _sphere = new Sphere(256f, 1f);
 
             var camera = new SphereCamera(Width, Height, _sphere.Radius);
-            camera.Altitude = 4f;
+            camera.Altitude = 128f;
 
             _shader = new TestShader();
             _shader.Camera = camera;
 
+            _timer = new Stopwatch();
+            _timer.Start();
 
             Mouse.Move += (sender, me) => {
                 var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
@@ -100,7 +104,7 @@ namespace Sphaira.Client
                 move = Vector3.Transform(move.Normalized(), rot);
 
                 if (Keyboard[Key.ShiftLeft]) {
-                    move *= (float) (32f * e.Time);
+                    move *= (float) (_sphere.Radius * 0.5f * e.Time);
                 } else {
                     move *= (float) (8f * e.Time);
                 }
@@ -112,6 +116,11 @@ namespace Sphaira.Client
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+
+            var ang = Quaternion.FromAxisAngle(new Vector3(0f, 1f, 0f),
+                (float) (_timer.Elapsed.TotalSeconds * Math.PI / 10.0));
+
+            _shader.SetUniform("sun", Vector3.Transform(new Vector3(_sphere.Radius + 512f, 0f, 0f), ang));
 
             _sphere.Render(_shader);
 

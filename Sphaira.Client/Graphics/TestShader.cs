@@ -29,15 +29,18 @@ namespace Sphaira.Client.Graphics
 
             var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
             frag.AddUniform(ShaderVarType.Vec4, "color");
+            frag.AddUniform(ShaderVarType.Vec3, "sun");
+            frag.AddUniform(ShaderVarType.Float, "scale");
             frag.FragOutIdentifier = "out_colour";
             frag.Logic = @"
                 void main(void)
                 {
-                    float shadeFreq = 512.0;
-                    float shade = round(cos(var_normal.x * shadeFreq)
-                                 + cos(var_normal.y * shadeFreq)
-                                 + cos(var_normal.z * shadeFreq)) / 6.0 + 0.5;
-                    out_colour = vec4(color.rgb * (dot(normalize(var_normal), vec3(1, 0, 0)) * 0.4 * shade + 0.6), 1.0);
+                    vec3 norm = normalize(var_normal);
+
+                    float mult = length(norm - var_normal) * 512.0 + 0.5;
+                    float light = dot(norm, -normalize(sun)) * 0.4 + 0.6;
+
+                    out_colour = vec4(color.rgb * mult * light, 1.0);
                 }
             ";
 
@@ -55,6 +58,7 @@ namespace Sphaira.Client.Graphics
 
             AddUniform("scale");
             AddUniform("color");
+            AddUniform("sun");
 
             AddAttribute("in_vertex", 3);
         }
