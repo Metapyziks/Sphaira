@@ -59,11 +59,12 @@ namespace Sphaira.Client.Graphics
         {
             var yRot = Matrix4.CreateRotationY(Yaw);
             var xRot = Matrix4.CreateRotationX(Pitch);
-            var trns = Matrix4.CreateTranslation(-Vector3.UnitY * (Sphere.Radius + Altitude));
+            var pole = Matrix4.CreateTranslation(-Vector3.UnitY * (Sphere.Radius + Altitude));
             var sRot = Matrix4.CreateFromQuaternion(_sphereRot);
+            var trns = Matrix4.CreateTranslation(-Sphere.Position);
 
             // Combine the matrices to find the view transformation
-            matrix = Matrix4.Mult(sRot, Matrix4.Mult(trns, Matrix4.Mult(yRot, xRot)));
+            matrix = Matrix4.Mult(trns, Matrix4.Mult(sRot, Matrix4.Mult(pole, Matrix4.Mult(yRot, xRot))));
         }
 
         public void Push(Vector2 vec)

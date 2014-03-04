@@ -44,6 +44,8 @@ namespace Sphaira.Client.Graphics
             frag.AddUniform(ShaderVarType.Vec3, "camera");
             frag.AddUniform(ShaderVarType.Vec4, "sphere");
             frag.AddUniform(ShaderVarType.Vec3, "sun");
+            frag.AddUniform(ShaderVarType.Vec4, "light_model");
+            frag.AddUniform(ShaderVarType.Vec3, "colour");
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
             frag.FragOutIdentifier = "out_colour";
             frag.Logic = @"
@@ -68,12 +70,12 @@ namespace Sphaira.Client.Graphics
                     vec3 normal = normalize(pos);
                     vec3 lookdir = normalize(pos - cam);
                     vec3 sundir = -normalize(sun);
-                    float light = max(1.0 / 32.0, dot(normal, sundir));
-                    float spclr = pow(max(0, dot(reflect(sundir, normal), lookdir)), 16) * 0.75;
-                    float check = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125 + 0.5;
-                    vec3 clr = check * light;
+                    float light = light_model.x + max(1.0 / 32.0, dot(normal, sundir)) * (1 - light_model.x);
+                    float spclr = pow(max(0, dot(reflect(sundir, normal), lookdir)), 16) * light_model.z;
+                    float check = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125;
+                    vec3 clr = colour * (light_model.y * check + (1 - light_model.y)) * light;
 
-                    clr += (textureCube(skybox, normalize(reflect(lookdir, normal))).rgb - clr) * 0.5;
+                    clr += (textureCube(skybox, normalize(reflect(lookdir, normal))).rgb - clr) * light_model.w;
 
                     out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * spclr, 1);
                 }
@@ -98,6 +100,8 @@ namespace Sphaira.Client.Graphics
             AddUniform("sphere");
 
             AddUniform("sun");
+            AddUniform("light_model");
+            AddUniform("colour");
 
             AddTexture("skybox");
         }
@@ -119,6 +123,9 @@ namespace Sphaira.Client.Graphics
         {
             SetUniform("sphere", new Vector4(sphere.Position, sphere.Radius));
             SetTexture("skybox", Camera.SkyBox);
+
+            SetUniform("light_model", new Vector4(sphere.Ambient, sphere.Diffuse, sphere.Specular, sphere.Reflect));
+            SetUniform("colour", sphere.Colour);
 
             Begin(true);
             Render(new float[] { -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f });

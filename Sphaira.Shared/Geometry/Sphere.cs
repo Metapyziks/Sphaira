@@ -60,6 +60,36 @@ namespace Sphaira.Shared.Geometry
             }
         }
 
+        public Vector3 Colour
+        {
+            get;
+            set;
+        }
+
+        public float Ambient
+        {
+            get;
+            set;
+        }
+
+        public float Diffuse
+        {
+            get;
+            set;
+        }
+
+        public float Specular
+        {
+            get;
+            set;
+        }
+
+        public float Reflect
+        {
+            get;
+            set;
+        }
+
         public Sphere(Vector3 pos, float radius, float density)
         {
             Position = pos;
@@ -69,6 +99,13 @@ namespace Sphaira.Shared.Geometry
 
             OnRadiusChanged();
             OnDensityChanged();
+
+            Colour = new Vector3(1f, 1f, 1f);
+
+            Ambient = 0f;
+            Diffuse = 0.25f;
+            Specular = 0.75f;
+            Reflect = 0.25f;
         }
 
         public float GetGravitationalAcceleration(float altitude)

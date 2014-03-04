@@ -14,11 +14,26 @@ namespace Sphaira.Client
 {
     public class Program : GameWindow
     {
+        private class DebugListener : TraceListener
+        {
+            public override void Write(string message)
+            {
+                Console.Write(message);
+            }
+
+            public override void WriteLine(string message)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
         const float StandEyeLevel = 1.7f;
         const float CrouchEyeLevel = 0.8f;
 
         public static int Main(String[] args)
         {
+            Trace.Listeners.Add(new DebugListener());
+
             using (var app = new Program()) {
                 app.Run();
             }
@@ -30,7 +45,7 @@ namespace Sphaira.Client
         private SkyShader _skyShader;
         private SphereShader _sphereShader;
         private Sphere _sphere;
-        private Sphere _satellite;
+        private Sphere _sun;
         private Stopwatch _frameTimer;
         private Stopwatch _timer;
         private int _frameCounter;
@@ -52,7 +67,15 @@ namespace Sphaira.Client
         protected override void OnLoad(EventArgs e)
         {
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
-            _satellite = new Sphere(Vector3.Zero, 32f, 1024f);
+
+            _sphere.Specular = 0.25f;
+
+            _sun = new Sphere(Vector3.Zero, 8f, 1024f);
+
+            _sun.Ambient = 1f;
+            _sun.Diffuse = 0f;
+            _sun.Specular = 0f;
+            _sun.Reflect = 0f;
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
             _camera.SkyBox = Starfield.Generate(0x4af618a);
@@ -70,20 +93,6 @@ namespace Sphaira.Client
             _timer.Start();
 
             _frameCounter = 0;
-
-            Mouse.Move += (sender, me) => {
-                var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
-
-                if (!Focused || !_captureMouse) return;
-                if (Cursor.Position.X == centre.X && Cursor.Position.Y == centre.Y) return;
-
-                _camera.Yaw += (Cursor.Position.X - centre.X) / 360f;
-                _camera.Pitch += (Cursor.Position.Y - centre.Y) / 360f;
-
-                _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
-
-                Cursor.Position = centre;
-            };
 
             Mouse.ButtonUp += (sender, me) => {
                 if (_captureMouse) return;
@@ -129,6 +138,21 @@ namespace Sphaira.Client
                         break;
                 }
             };
+        }
+
+        private void UpdateLookDirection()
+        {
+            var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
+
+            if (!Focused || !_captureMouse) return;
+            if (Cursor.Position.X == centre.X && Cursor.Position.Y == centre.Y) return;
+
+            _camera.Yaw += (Cursor.Position.X - centre.X) / 360f;
+            _camera.Pitch += (Cursor.Position.Y - centre.Y) / 360f;
+
+            _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
+
+            Cursor.Position = centre;
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -181,17 +205,19 @@ namespace Sphaira.Client
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
+            UpdateLookDirection();
+
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             _skyShader.Render();
 
-            _sphereShader.SetUniform("sun", -Vector3.UnitY);
+            _sphereShader.SetUniform("sun", _sphere.Position - _sun.Position);
 
-            float dist = (_satellite.Radius + _sphere.Radius);
-            _satellite.Position = Vector3.Transform(Vector3.UnitX * dist, Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes));
+            float dist = (_sun.Radius + _sphere.Radius) * 2f;
+            _sun.Position = Vector3.Transform(Vector3.UnitX * dist, Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes));
 
             _sphereShader.Render(_sphere);
-            _sphereShader.Render(_satellite);
+            _sphereShader.Render(_sun);
 
             SwapBuffers();
             ++_frameCounter;
