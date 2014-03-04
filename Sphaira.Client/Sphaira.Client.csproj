@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Graphics\SphereShader.cs" />
     <Compile Include="Graphics\SphereCamera.cs" />
+    <Compile Include="Graphics\Starfield.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

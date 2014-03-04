@@ -14,6 +14,9 @@ namespace Sphaira.Client
 {
     public class Program : GameWindow
     {
+        const float StandEyeLevel = 1.7f;
+        const float CrouchEyeLevel = 0.8f;
+
         public static int Main(String[] args)
         {
             using (var app = new Program()) {
@@ -27,6 +30,7 @@ namespace Sphaira.Client
         private SphereShader _sphereShader;
         private Sphere _sphere;
         private Stopwatch _timer;
+        private int _frameCounter;
 
         private bool _captureMouse;
 
@@ -44,15 +48,17 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(8f, 1024f);
+            _sphere = new Sphere(16f, 1024f);
 
-            _camera = new SphereCamera(Width, Height, _sphere, 1.6625f);
+            _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
 
             _sphereShader = new SphereShader();
             _sphereShader.Camera = _camera;
 
             _timer = new Stopwatch();
             _timer.Start();
+
+            _frameCounter = 0;
 
             Mouse.Move += (sender, me) => {
                 var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
@@ -110,22 +116,40 @@ namespace Sphaira.Client
             if (Keyboard[Key.A]) move -= Vector3.UnitX;
             if (Keyboard[Key.D]) move += Vector3.UnitX;
 
+            if (Keyboard[Key.ControlLeft]) {
+                _camera.EyeHeight = CrouchEyeLevel;
+            } else {
+                _camera.EyeHeight += (StandEyeLevel - _camera.EyeHeight) * 0.25f;
+            }
+
+            if (_timer.Elapsed.TotalSeconds > 0.5) {
+                _timer.Stop();
+
+                Title = String.Format("FPS: {0:F2}", _frameCounter / _timer.Elapsed.TotalSeconds);
+                
+                _timer.Restart();
+                _frameCounter = 0;
+            }
+
             if (move.LengthSquared > 0f) {
                 var rot = Matrix4.CreateRotationY(-_camera.Yaw);
 
                 move = Vector3.Transform(move.Normalized(), rot);
 
-                if (Keyboard[Key.ShiftLeft]) {
-                    move *= 4f;
+                if (Keyboard[Key.ControlLeft]) {
+                    move *= 12f;
+                } else if (Keyboard[Key.ShiftLeft]) {
+                    move *= 16f;
                 } else {
-                    move *= 2f;
+                    move *= 48f;
                 }
+
 
                 if (_camera.Altitude > _camera.EyeHeight) {
                     move *= 1f / 8f;
                 }
 
-                _camera.Push(move.Xz);
+                _camera.Push(move.Xz * (float) e.Time);
             }
 
             _camera.UpdateFrame(e);
@@ -135,12 +159,13 @@ namespace Sphaira.Client
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            _sphere.Radius = 16f + (float) Math.Sin(_timer.Elapsed.TotalSeconds / 4.0) * 8f;
+            // _sphere.Radius = 16f + (float) Math.Sin(_timer.Elapsed.TotalSeconds / 4.0) * 8f;
             
             _sphereShader.SetUniform("sun", -Vector3.UnitY);
             _sphereShader.Render(_sphere);
 
             SwapBuffers();
+            ++_frameCounter;
         }
     }
 }

@@ -63,7 +63,7 @@ namespace Sphaira.Client.Graphics
 
                     vec3 normal = normalize(pos);
                     float light = max(1.0 / 32.0, dot(normal, -normalize(sun)));
-                    float spclr = pow(max(0, dot(reflect(normalize(sun), normal), normalize(camera))), 8);
+                    float spclr = pow(max(0, dot(reflect(normalize(sun), normal), normalize(camera))), 4);
                     float check = ((int(pos.x) ^ int(pos.y) ^ int(pos.z)) & 1) * 0.125 + 0.875;
                     vec3 clr = vec3(check, check, check) * light;
 

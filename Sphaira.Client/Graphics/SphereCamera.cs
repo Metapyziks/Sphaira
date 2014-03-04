@@ -12,11 +12,11 @@ namespace Sphaira.Client.Graphics
     {
         private Quaternion _sphereRot;
 
-        public Sphere Sphere { get; private set; }
+        public Sphere Sphere { get; set; }
 
         public float Altitude { get; set; }
 
-        public float EyeHeight { get; private set; }
+        public float EyeHeight { get; set; }
 
         private Vector3 _velocity;
 
@@ -99,7 +99,9 @@ namespace Sphaira.Client.Graphics
             if (Altitude > EyeHeight || _velocity.Y > 0f) {
                 Altitude += _velocity.Y * (float) e.Time;
                 _velocity.Y -= Sphere.GetGravitationalAcceleration(Altitude) * (float) e.Time;
-            } else {
+            }
+
+            if (Altitude <= EyeHeight) {
                 Altitude = EyeHeight;
                 _velocity.Y = 0f;
             }
