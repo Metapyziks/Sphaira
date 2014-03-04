@@ -14,7 +14,7 @@ namespace Sphaira.Client
 {
     public class Program : GameWindow
     {
-        const float StandEyeLevel = 32f;
+        const float StandEyeLevel = 1.7f;
         const float CrouchEyeLevel = 0.8f;
 
         public static int Main(String[] args)
@@ -48,7 +48,7 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(16f, 1024f);
+            _sphere = new Sphere(32f, 1024f);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
 
@@ -103,6 +103,19 @@ namespace Sphaira.Client
                             WindowState = WindowState.Fullscreen;
                         }
                         break;
+                    case Key.Number0:
+                    case Key.Number1:
+                    case Key.Number2:
+                    case Key.Number3:
+                    case Key.Number4:
+                    case Key.Number5:
+                    case Key.Number6:
+                    case Key.Number7:
+                    case Key.Number8:
+                    case Key.Number9:
+                        var n = (int) ke.Key - (int) Key.Number0;
+                        _sphere.Radius = (float) Math.Pow(2, n + 1);
+                        break;
                 }
             };
         }
@@ -117,7 +130,7 @@ namespace Sphaira.Client
             if (Keyboard[Key.D]) move += Vector3.UnitX;
 
             if (Keyboard[Key.ControlLeft]) {
-                _camera.EyeHeight = CrouchEyeLevel;
+                _camera.EyeHeight = _sphere.Radius * 1.5f;
             } else {
                 _camera.EyeHeight += (StandEyeLevel - _camera.EyeHeight) * 0.25f;
             }
@@ -137,7 +150,7 @@ namespace Sphaira.Client
                 move = Vector3.Transform(move.Normalized(), rot);
 
                 if (Keyboard[Key.ControlLeft]) {
-                    move *= 12f;
+                    move *= 64f;
                 } else if (Keyboard[Key.ShiftLeft]) {
                     move *= 16f;
                 } else {
