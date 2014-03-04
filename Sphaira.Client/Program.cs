@@ -14,7 +14,7 @@ namespace Sphaira.Client
 {
     public class Program : GameWindow
     {
-        const float StandEyeLevel = 1.7f;
+        const float StandEyeLevel = 32f;
         const float CrouchEyeLevel = 0.8f;
 
         public static int Main(String[] args)

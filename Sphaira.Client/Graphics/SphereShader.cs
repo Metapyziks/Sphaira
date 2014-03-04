@@ -63,11 +63,11 @@ namespace Sphaira.Client.Graphics
 
                     vec3 normal = normalize(pos);
                     float light = max(1.0 / 32.0, dot(normal, -normalize(sun)));
-                    float spclr = pow(max(0, dot(reflect(normalize(sun), normal), normalize(camera))), 4);
-                    float check = ((int(pos.x) ^ int(pos.y) ^ int(pos.z)) & 1) * 0.125 + 0.875;
-                    vec3 clr = vec3(check, check, check) * light;
+                    float spclr = pow(max(0, dot(reflect(normalize(sun), normal), normalize(camera))), 16);
+                    float check = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125 + 0.875;
+                    vec3 clr = (vec3(pos.x, pos.y, pos.z) / radius + vec3(1, 1, 1)) * 0.5 * check * light;
 
-                    out_colour = vec4(clr * 0.75 + 0.25 * vec3(1, 1, 1) * spclr, 1);
+                    out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * spclr, 1);
                 }
             ";
 
