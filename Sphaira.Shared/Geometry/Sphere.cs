@@ -14,6 +14,12 @@ namespace Sphaira.Shared.Geometry
         private bool _volumeChanged;
         private bool _massChanged;
 
+        public Vector3 Position
+        {
+            get;
+            set;
+        }
+
         public float Radius
         {
             get { return _radius; }
@@ -54,8 +60,10 @@ namespace Sphaira.Shared.Geometry
             }
         }
 
-        public Sphere(float radius, float density)
+        public Sphere(Vector3 pos, float radius, float density)
         {
+            Position = pos;
+
             Radius = radius;
             Density = density;
 

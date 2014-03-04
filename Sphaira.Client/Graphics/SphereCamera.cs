@@ -1,9 +1,7 @@
 ﻿using System;
-
 using OpenTK;
-
 using OpenTKTK.Scene;
-
+using OpenTKTK.Textures;
 using Sphaira.Shared.Geometry;
 
 namespace Sphaira.Client.Graphics
@@ -18,11 +16,13 @@ namespace Sphaira.Client.Graphics
 
         public float EyeHeight { get; set; }
 
+        public CubeMapTexture SkyBox { get; set; }
+
         private Vector3 _velocity;
 
         public override Vector3 Position
         {
-            get { return Vector3.Transform((Altitude + Sphere.Radius) * Vector3.UnitY, _sphereRot.Inverted()); }
+            get { return Sphere.Position + Vector3.Transform((Altitude + Sphere.Radius) * Vector3.UnitY, _sphereRot.Inverted()); }
             set { throw new NotImplementedException(); }
         }
 

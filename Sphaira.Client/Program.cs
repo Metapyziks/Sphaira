@@ -27,8 +27,10 @@ namespace Sphaira.Client
         }
 
         private SphereCamera _camera;
+        private SkyShader _skyShader;
         private SphereShader _sphereShader;
         private Sphere _sphere;
+        private Sphere _satellite;
         private Stopwatch _timer;
         private int _frameCounter;
 
@@ -48,12 +50,17 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(32f, 1024f);
+            _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
+            _satellite = new Sphere(Vector3.UnitX * 32f, 8f, 1024f);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
+            _camera.SkyBox = Starfield.Generate(0x4af618a);
 
             _sphereShader = new SphereShader();
             _sphereShader.Camera = _camera;
+
+            _skyShader = new SkyShader();
+            _skyShader.Camera = _camera;
 
             _timer = new Stopwatch();
             _timer.Start();
@@ -172,10 +179,12 @@ namespace Sphaira.Client
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            // _sphere.Radius = 16f + (float) Math.Sin(_timer.Elapsed.TotalSeconds / 4.0) * 8f;
-            
+            _skyShader.Render();
+
             _sphereShader.SetUniform("sun", -Vector3.UnitY);
+
             _sphereShader.Render(_sphere);
+            _sphereShader.Render(_satellite);
 
             SwapBuffers();
             ++_frameCounter;
