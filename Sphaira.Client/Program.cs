@@ -67,10 +67,7 @@ namespace Sphaira.Client
         protected override void OnLoad(EventArgs e)
         {
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
-
-            _sphere.Specular = 0.25f;
-
-            _sun = new Sphere(Vector3.Zero, 8f, 1024f);
+            _sun = new Sphere(Vector3.Zero, 256f, 1024f);
 
             _sun.Ambient = 1f;
             _sun.Diffuse = 0f;
@@ -93,6 +90,20 @@ namespace Sphaira.Client
             _timer.Start();
 
             _frameCounter = 0;
+
+            Mouse.Move += (sender, me) => {
+                var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
+
+                if (!Focused || !_captureMouse) return;
+                if (Cursor.Position.X == centre.X && Cursor.Position.Y == centre.Y) return;
+
+                _camera.Yaw += me.XDelta / 360f;
+                _camera.Pitch += me.YDelta / 360f;
+
+                _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
+
+                Cursor.Position = centre;
+            };
 
             Mouse.ButtonUp += (sender, me) => {
                 if (_captureMouse) return;
@@ -138,21 +149,6 @@ namespace Sphaira.Client
                         break;
                 }
             };
-        }
-
-        private void UpdateLookDirection()
-        {
-            var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
-
-            if (!Focused || !_captureMouse) return;
-            if (Cursor.Position.X == centre.X && Cursor.Position.Y == centre.Y) return;
-
-            _camera.Yaw += (Cursor.Position.X - centre.X) / 360f;
-            _camera.Pitch += (Cursor.Position.Y - centre.Y) / 360f;
-
-            _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
-
-            Cursor.Position = centre;
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -205,19 +201,19 @@ namespace Sphaira.Client
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            UpdateLookDirection();
-
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             _skyShader.Render();
+            
+            _sun.Position = Vector3.Transform(Vector3.UnitX * 8192f,
+                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes / 12f));
 
             _sphereShader.SetUniform("sun", _sphere.Position - _sun.Position);
 
-            float dist = (_sun.Radius + _sphere.Radius) * 2f;
-            _sun.Position = Vector3.Transform(Vector3.UnitX * dist, Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes));
-
-            _sphereShader.Render(_sphere);
+            _sphereShader.DepthTest = false;
             _sphereShader.Render(_sun);
+            _sphereShader.DepthTest = true;
+            _sphereShader.Render(_sphere);
 
             SwapBuffers();
             ++_frameCounter;

@@ -8,8 +8,12 @@ namespace Sphaira.Client.Graphics
 {
     public class SphereShader : ShaderProgram3D<SphereCamera>
     {
+        public bool DepthTest { get; set; }
+
         public SphereShader()
         {
+            DepthTest = true;
+
             var vert = new ShaderBuilder(ShaderType.VertexShader, false);
             vert.AddUniform(ShaderVarType.Mat4, "view");
             vert.AddUniform(ShaderVarType.Mat4, "proj");
@@ -71,7 +75,7 @@ namespace Sphaira.Client.Graphics
                     vec3 lookdir = normalize(pos - cam);
                     vec3 sundir = -normalize(sun);
                     float light = light_model.x + max(1.0 / 32.0, dot(normal, sundir)) * (1 - light_model.x);
-                    float spclr = pow(max(0, dot(reflect(sundir, normal), lookdir)), 16) * light_model.z;
+                    float spclr = pow(max(0, dot(reflect(sundir, normal), lookdir)), 64) * light_model.z;
                     float check = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125;
                     vec3 clr = colour * (light_model.y * check + (1 - light_model.y)) * light;
 
@@ -116,7 +120,9 @@ namespace Sphaira.Client.Graphics
                 SetUniform("camera", Camera.Position);
             }
 
-            GL.Enable(EnableCap.DepthTest);
+            if (DepthTest) {
+                GL.Enable(EnableCap.DepthTest);
+            }
         }
 
         public void Render(Sphere sphere)
@@ -134,7 +140,9 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnEnd()
         {
-            GL.Disable(EnableCap.DepthTest);
+            if (DepthTest) {
+                GL.Disable(EnableCap.DepthTest);
+            }
         }
     }
 }
