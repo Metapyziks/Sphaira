@@ -31,6 +31,7 @@ namespace Sphaira.Client
         private SphereShader _sphereShader;
         private Sphere _sphere;
         private Sphere _satellite;
+        private Stopwatch _frameTimer;
         private Stopwatch _timer;
         private int _frameCounter;
 
@@ -51,7 +52,7 @@ namespace Sphaira.Client
         protected override void OnLoad(EventArgs e)
         {
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
-            _satellite = new Sphere(Vector3.UnitX * 32f, 8f, 1024f);
+            _satellite = new Sphere(Vector3.Zero, 32f, 1024f);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
             _camera.SkyBox = Starfield.Generate(0x4af618a);
@@ -62,7 +63,10 @@ namespace Sphaira.Client
             _skyShader = new SkyShader();
             _skyShader.Camera = _camera;
 
+            _frameTimer = new Stopwatch();
             _timer = new Stopwatch();
+
+            _frameTimer.Start();
             _timer.Start();
 
             _frameCounter = 0;
@@ -142,12 +146,12 @@ namespace Sphaira.Client
                 _camera.EyeHeight += (StandEyeLevel - _camera.EyeHeight) * 0.25f;
             }
 
-            if (_timer.Elapsed.TotalSeconds > 0.5) {
-                _timer.Stop();
+            if (_frameTimer.Elapsed.TotalSeconds > 0.5) {
+                _frameTimer.Stop();
 
-                Title = String.Format("FPS: {0:F2}", _frameCounter / _timer.Elapsed.TotalSeconds);
+                Title = String.Format("FPS: {0:F2}", _frameCounter / _frameTimer.Elapsed.TotalSeconds);
                 
-                _timer.Restart();
+                _frameTimer.Restart();
                 _frameCounter = 0;
             }
 
@@ -182,6 +186,9 @@ namespace Sphaira.Client
             _skyShader.Render();
 
             _sphereShader.SetUniform("sun", -Vector3.UnitY);
+
+            float dist = (_satellite.Radius + _sphere.Radius);
+            _satellite.Position = Vector3.Transform(Vector3.UnitX * dist, Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes));
 
             _sphereShader.Render(_sphere);
             _sphereShader.Render(_satellite);
