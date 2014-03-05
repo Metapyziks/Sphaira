@@ -1,4 +1,6 @@
-﻿using OpenTK.Graphics.OpenGL;
+﻿using System;
+
+using OpenTK.Graphics.OpenGL;
 
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
@@ -7,6 +9,24 @@ namespace Sphaira.Client.Graphics
 {
     public class SkyShader : ShaderProgram3D<SphereCamera>
     {
+        internal static readonly String GetSunSource = @"
+            float getSun(vec3 pos)
+            {
+                pos = normalize(pos);
+
+                vec3 sundir = normalize(sun - camera);
+                vec3 lookdir = pos - sundir;
+                vec3 up = cross(vec3(0, 1, 0), sundir);
+                vec3 right = cross(up, sundir);
+
+                float mag = dot(sundir, pos);
+                float ang = atan(dot(lookdir, up), dot(lookdir, right));
+                float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 - time * 3) * 0.01 + 0.4;
+
+                return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
+            }
+        ";
+
         private const float BoxSize = 1f;
 
         private static readonly float[] _sVerts = new float[] {
@@ -42,23 +62,7 @@ namespace Sphaira.Client.Graphics
             frag.AddUniform(ShaderVarType.Vec3, "sun");
             frag.AddUniform(ShaderVarType.Vec3, "camera");
             frag.AddUniform(ShaderVarType.Float, "time");
-            frag.Logic = @"
-                float getSun(vec3 pos)
-                {
-                    pos = normalize(pos);
-
-                    vec3 sundir = normalize(sun - camera);
-                    vec3 lookdir = pos - sundir;
-                    vec3 up = cross(vec3(0, 1, 0), sundir);
-                    vec3 right = cross(up, sundir);
-
-                    float mag = dot(sundir, pos);
-                    float ang = atan(dot(lookdir, up), dot(lookdir, right));
-                    float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 - time * 3) * 0.01 + 0.4;
-
-                    return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
-                }
-
+            frag.Logic = GetSunSource + @"
                 void main(void)
                 {
                     vec3 sky = textureCube(skybox, var_texcoord).rgb;

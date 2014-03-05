@@ -52,23 +52,7 @@ namespace Sphaira.Client.Graphics
             frag.AddUniform(ShaderVarType.Vec4, "light_model");
             frag.AddUniform(ShaderVarType.Vec3, "colour");
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
-            frag.Logic = @"
-                float getSun(vec3 pos)
-                {
-                    pos = normalize(pos);
-
-                    vec3 sundir = normalize(sun - camera);
-                    vec3 lookdir = pos - sundir;
-                    vec3 up = cross(vec3(0, 1, 0), sundir);
-                    vec3 right = cross(up, sundir);
-
-                    float mag = dot(sundir, pos);
-                    float ang = atan(dot(lookdir, up), dot(lookdir, right));
-                    float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 + time * 3) * 0.01 + 0.4;
-
-                    return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
-                }
-
+            frag.Logic = SkyShader.GetSunSource + @"
                 void main(void)
                 {
                     float r = sphere.w;
