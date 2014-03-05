@@ -54,7 +54,7 @@ namespace Sphaira.Client.Graphics
 
                     float mag = dot(sundir, pos);
                     float ang = atan(dot(lookdir, up), dot(lookdir, right));
-                    float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 + time * 3) * 0.01 + 0.4;
+                    float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 - time * 3) * 0.01 + 0.4;
 
                     return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
                 }
