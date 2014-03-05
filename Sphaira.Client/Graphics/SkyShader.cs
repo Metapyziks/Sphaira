@@ -61,7 +61,7 @@ namespace Sphaira.Client.Graphics
 
                 void main(void)
                 {
-                    vec3 sky = textureCube(skybox, var_texcoord);
+                    vec3 sky = textureCube(skybox, var_texcoord).rgb;
                     out_colour = vec4(sky + (vec3(1, 1, 1) - sky) * getSun(var_texcoord), 1);
                 }
             ";
