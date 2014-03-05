@@ -45,7 +45,6 @@ namespace Sphaira.Client
         private SkyShader _skyShader;
         private SphereShader _sphereShader;
         private Sphere _sphere;
-        private Sphere _sun;
         private Stopwatch _frameTimer;
         private Stopwatch _timer;
         private int _frameCounter;
@@ -67,12 +66,6 @@ namespace Sphaira.Client
         protected override void OnLoad(EventArgs e)
         {
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
-            _sun = new Sphere(Vector3.Zero, 256f, 1024f);
-
-            _sun.Ambient = 1f;
-            _sun.Diffuse = 0f;
-            _sun.Specular = 0f;
-            _sun.Reflect = 0f;
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
             _camera.SkyBox = Starfield.Generate(0x4af618a);
@@ -203,16 +196,16 @@ namespace Sphaira.Client
         {
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+            var sun = Vector3.Transform(Vector3.UnitX * 8192f,
+                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
+
+            _skyShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+            _skyShader.SetUniform("sun", sun);
             _skyShader.Render();
-            
-            _sun.Position = Vector3.Transform(Vector3.UnitX * 8192f,
-                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes / 12f));
 
-            _sphereShader.SetUniform("sun", _sphere.Position - _sun.Position);
 
-            _sphereShader.DepthTest = false;
-            _sphereShader.Render(_sun);
-            _sphereShader.DepthTest = true;
+            _sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+            _sphereShader.SetUniform("sun", sun);
             _sphereShader.Render(_sphere);
 
             SwapBuffers();

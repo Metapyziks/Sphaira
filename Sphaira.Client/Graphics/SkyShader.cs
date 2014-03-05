@@ -23,13 +23,15 @@ namespace Sphaira.Client.Graphics
         public SkyShader()
         {
             ShaderBuilder vert = new ShaderBuilder(ShaderType.VertexShader, false);
-            vert.AddUniform(ShaderVarType.Mat4, "vp_matrix");
+            vert.AddUniform(ShaderVarType.Mat4, "view");
+            vert.AddUniform(ShaderVarType.Mat4, "proj");
             vert.AddAttribute(ShaderVarType.Vec3, "in_vertex");
             vert.AddVarying(ShaderVarType.Vec3, "var_texcoord");
             vert.Logic = @"
                 void main(void)
                 {
-                    vec4 pos = vp_matrix * vec4(in_vertex, 0.0);
+                    vec4 pos = proj * view * vec4(in_vertex, 0);
+
                     gl_Position = pos.xyww;
                     var_texcoord = in_vertex;
                 }
@@ -37,10 +39,30 @@ namespace Sphaira.Client.Graphics
 
             ShaderBuilder frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
+            frag.AddUniform(ShaderVarType.Vec3, "sun");
+            frag.AddUniform(ShaderVarType.Vec3, "camera");
+            frag.AddUniform(ShaderVarType.Float, "time");
             frag.Logic = @"
+                float getSun(vec3 pos)
+                {
+                    pos = normalize(pos);
+
+                    vec3 sundir = normalize(sun - camera);
+                    vec3 lookdir = pos - sundir;
+                    vec3 up = cross(vec3(0, 1, 0), sundir);
+                    vec3 right = cross(up, sundir);
+
+                    float mag = dot(sundir, pos);
+                    float ang = atan(dot(lookdir, up), dot(lookdir, right));
+                    float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 + time * 3) * 0.01 + 0.4;
+
+                    return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
+                }
+
                 void main(void)
                 {
-                    out_colour = textureCube(skybox, var_texcoord);
+                    vec3 sky = textureCube(skybox, var_texcoord);
+                    out_colour = vec4(sky + (vec3(1, 1, 1) - sky) * getSun(var_texcoord), 1);
                 }
             ";
 
@@ -54,9 +76,14 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnCreate()
         {
-            base.OnCreate();
+            AddUniform("view");
+            AddUniform("proj");
+            AddUniform("camera");
 
             AddAttribute("in_vertex", 3);
+
+            AddUniform("sun");
+            AddUniform("time");
 
             AddTexture("skybox");
 
@@ -67,7 +94,13 @@ namespace Sphaira.Client.Graphics
         }
         protected override void OnBegin()
         {
-            base.OnBegin();
+            if (Camera != null) {
+                var viewMat = Camera.ViewMatrix;
+                var projMat = Camera.PerspectiveMatrix;
+                SetUniform("view", ref viewMat);
+                SetUniform("proj", ref projMat);
+                SetUniform("camera", Camera.Position);
+            }
 
             SetTexture("skybox", Camera.SkyBox);
         }

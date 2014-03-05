@@ -48,11 +48,27 @@ namespace Sphaira.Client.Graphics
             frag.AddUniform(ShaderVarType.Vec3, "camera");
             frag.AddUniform(ShaderVarType.Vec4, "sphere");
             frag.AddUniform(ShaderVarType.Vec3, "sun");
+            frag.AddUniform(ShaderVarType.Float, "time");
             frag.AddUniform(ShaderVarType.Vec4, "light_model");
             frag.AddUniform(ShaderVarType.Vec3, "colour");
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
-            frag.FragOutIdentifier = "out_colour";
             frag.Logic = @"
+                float getSun(vec3 pos)
+                {
+                    pos = normalize(pos);
+
+                    vec3 sundir = normalize(sun - camera);
+                    vec3 lookdir = pos - sundir;
+                    vec3 up = cross(vec3(0, 1, 0), sundir);
+                    vec3 right = cross(up, sundir);
+
+                    float mag = dot(sundir, pos);
+                    float ang = atan(dot(lookdir, up), dot(lookdir, right));
+                    float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 + time * 3) * 0.01 + 0.4;
+
+                    return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
+                }
+
                 void main(void)
                 {
                     float r = sphere.w;
@@ -73,15 +89,16 @@ namespace Sphaira.Client.Graphics
 
                     vec3 normal = normalize(pos);
                     vec3 lookdir = normalize(pos - cam);
-                    vec3 sundir = -normalize(sun);
+                    vec3 sundir = normalize(sun - camera);
                     float light = light_model.x + max(1.0 / 32.0, dot(normal, sundir)) * (1 - light_model.x);
-                    float spclr = pow(max(0, dot(reflect(sundir, normal), lookdir)), 64) * light_model.z;
                     float check = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125;
                     vec3 clr = colour * (light_model.y * check + (1 - light_model.y)) * light;
 
-                    clr += (textureCube(skybox, normalize(reflect(lookdir, normal))).rgb - clr) * light_model.w;
+                    vec3 skypos = normalize(reflect(lookdir, normal));
+                    vec3 sky = textureCube(skybox, skypos).rgb;
+                    sky = sky * light_model.w + (vec3(1, 1, 1) - sky * light_model.w) * getSun(skypos) * light_model.z;
 
-                    out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * spclr, 1);
+                    out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * sky, 1);
                 }
             ";
 
@@ -105,6 +122,7 @@ namespace Sphaira.Client.Graphics
 
             AddUniform("sun");
             AddUniform("light_model");
+            AddUniform("time");
             AddUniform("colour");
 
             AddTexture("skybox");
