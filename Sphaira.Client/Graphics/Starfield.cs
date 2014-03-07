@@ -60,7 +60,7 @@ namespace Sphaira.Client.Graphics
 
         private static Nebula[] GenerateNebulae(this Random rand, int count, float near, float far)
         {
-            float minRad = 4f;
+            float minRad = 1f;
             float maxRad = 8f;
 
             var reds = new Vector3[32];
@@ -86,7 +86,7 @@ namespace Sphaira.Client.Graphics
                     new Color4(0.5f + shift * 0.5f,
                         rand.NextSingle() * 0.1f,
                         0.5f - shift * 0.5f,
-                        1f / 64f + rand.NextSingle() * rand.NextSingle() * 1f / 8f));
+                        1f / 128f + rand.NextSingle() * rand.NextSingle() * 1f / 32f));
             }
 
             return nebulae;
@@ -100,7 +100,7 @@ namespace Sphaira.Client.Graphics
             float far = 32f;
 
             var stars = rand.GenerateStars(16384, near, far);
-            var nebulae = rand.GenerateNebulae(4096, near, far);
+            var nebulae = rand.GenerateNebulae(8192, near, far);
             
             var camera = new Camera(resolution, resolution, MathHelper.PiOver2, 4f, 64f);
             var sphereShader = new SphereShader { Camera = camera };
