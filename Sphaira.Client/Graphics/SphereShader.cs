@@ -9,6 +9,8 @@ namespace Sphaira.Client.Graphics
 {
     public class SphereShader : ShaderProgram3D<Camera>
     {
+        private static VertexBuffer _sVB;
+
         public bool DepthTest { get; set; }
 
         public SphereShader()
@@ -59,6 +61,7 @@ namespace Sphaira.Client.Graphics
                     float r = sphere.w;
                     vec3 cam = camera - sphere.xyz;
                     float len2 = dot(var_position, var_position);
+
 
                     if (len2 > 1) discard;
 
@@ -111,6 +114,16 @@ namespace Sphaira.Client.Graphics
             AddUniform("colour");
 
             AddTexture("skybox");
+
+            if (_sVB == null) {
+                _sVB = new VertexBuffer(2);
+                _sVB.SetData(new float[] { -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f });
+            }
+        }
+
+        public void BeginBatch()
+        {
+            _sVB.Begin(this);
         }
 
         protected override void OnBegin()
@@ -128,6 +141,11 @@ namespace Sphaira.Client.Graphics
             }
         }
 
+        public void EndBatch()
+        {
+            _sVB.End();
+        }
+
         public void Render(Sphere sphere)
         {
             SetUniform("sphere", new Vector4(sphere.Position, sphere.Radius));
@@ -138,9 +156,7 @@ namespace Sphaira.Client.Graphics
             SetUniform("light_model", new Vector4(sphere.Ambient, sphere.Diffuse, sphere.Specular, sphere.Reflect));
             SetUniform("colour", sphere.Colour);
 
-            Begin(true);
-            Render(new float[] { -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f });
-            End();
+            _sVB.Render();
         }
 
         protected override void OnEnd()

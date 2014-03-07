@@ -30,6 +30,8 @@ namespace Sphaira.Client.Graphics
 
     public class NebulaShader : ShaderProgram3D<Camera>
     {
+        private static VertexBuffer _sVB;
+
         public NebulaShader()
         {
             var vert = new ShaderBuilder(ShaderType.VertexShader, false);
@@ -82,6 +84,16 @@ namespace Sphaira.Client.Graphics
             AddUniform("nebula");
 
             AddUniform("colour");
+
+            if (_sVB == null) {
+                _sVB = new VertexBuffer(2);
+                _sVB.SetData(new float[] { -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f });
+            }
+        }
+
+        public void BeginBatch()
+        {
+            _sVB.Begin(this);
         }
 
         protected override void OnBegin()
@@ -99,14 +111,17 @@ namespace Sphaira.Client.Graphics
             GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
         }
 
+        public void EndBatch()
+        {
+            _sVB.End();
+        }
+
         public void Render(Nebula nebula)
         {
             SetUniform("nebula", new Vector4(nebula.Position, nebula.Size));
             SetUniform("colour", nebula.Colour);
 
-            Begin(true);
-            Render(new float[] { -1f, -1f, 1f, -1f, 1f, 1f, -1f, 1f });
-            End();
+            _sVB.Render();
         }
 
         protected override void OnEnd()

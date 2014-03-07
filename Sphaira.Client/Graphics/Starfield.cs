@@ -124,14 +124,18 @@ namespace Sphaira.Client.Graphics
                 camera.Yaw = angles[i].Item2;
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-                
+
+                nebulaShader.BeginBatch();
                 foreach (var nebula in nebulae) {
                     nebulaShader.Render(nebula);
                 }
+                nebulaShader.EndBatch();
 
+                sphereShader.BeginBatch();
                 foreach (var star in stars) {
                     sphereShader.Render(star);
                 }
+                sphereShader.EndBatch();
 
                 var bmp = bmps[i] = new Bitmap(resolution, resolution);
 

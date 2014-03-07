@@ -203,10 +203,11 @@ namespace Sphaira.Client
             _skyShader.SetUniform("sun", sun);
             _skyShader.Render();
 
-
+            _sphereShader.BeginBatch();
             _sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
             _sphereShader.SetUniform("sun", sun);
             _sphereShader.Render(_sphere);
+            _sphereShader.EndBatch();
 
             SwapBuffers();
             ++_frameCounter;
