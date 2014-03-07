@@ -1,12 +1,13 @@
 ﻿using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
 using Sphaira.Shared.Geometry;
 
 namespace Sphaira.Client.Graphics
 {
-    public class SphereShader : ShaderProgram3D<SphereCamera>
+    public class SphereShader : ShaderProgram3D<Camera>
     {
         public bool DepthTest { get; set; }
 
@@ -130,7 +131,9 @@ namespace Sphaira.Client.Graphics
         public void Render(Sphere sphere)
         {
             SetUniform("sphere", new Vector4(sphere.Position, sphere.Radius));
-            SetTexture("skybox", Camera.SkyBox);
+            if (Camera is SphereCamera) {
+                SetTexture("skybox", ((SphereCamera) Camera).SkyBox);
+            }
 
             SetUniform("light_model", new Vector4(sphere.Ambient, sphere.Diffuse, sphere.Specular, sphere.Reflect));
             SetUniform("colour", sphere.Colour);

@@ -1,13 +1,12 @@
 ﻿using System;
-
 using OpenTK.Graphics.OpenGL;
-
+using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
 
 namespace Sphaira.Client.Graphics
 {
-    public class SkyShader : ShaderProgram3D<SphereCamera>
+    public class SkyShader : ShaderProgram3D<Camera>
     {
         internal static readonly String GetSunSource = @"
             float getSun(vec3 pos)
@@ -106,7 +105,9 @@ namespace Sphaira.Client.Graphics
                 SetUniform("camera", Camera.Position);
             }
 
-            SetTexture("skybox", Camera.SkyBox);
+            if (Camera is SphereCamera) {
+                SetTexture("skybox", ((SphereCamera) Camera).SkyBox);
+            }
         }
 
         public void Render()
