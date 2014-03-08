@@ -77,8 +77,8 @@ namespace Sphaira.Client
                 _frameBuffers[i] = new FrameBuffer(new BitmapTexture2D(Width, Height) {
                     MinFilter = TextureMinFilter.Nearest,
                     MagFilter = TextureMagFilter.Nearest,
-                    TextureWrapR = TextureWrapMode.Clamp,
-                    TextureWrapS = TextureWrapMode.Clamp
+                    TextureWrapS = TextureWrapMode.ClampToEdge,
+                    TextureWrapT = TextureWrapMode.ClampToEdge
                 });
             }
 
