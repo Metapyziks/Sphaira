@@ -120,6 +120,10 @@ namespace Sphaira.Client
                         _camera = new SphereCamera(Width, Height, _sphere, _sphere.Radius);
                         _sphereShader.Camera = _camera;
                         break;
+                    case Key.G:
+                        _camera.SkyBox.Dispose();
+                        _camera.SkyBox = Starfield.Generate((int) _timer.Elapsed.TotalMilliseconds);
+                        break;
                     case Key.F11:
                         if (WindowState == WindowState.Fullscreen) {
                             WindowState = WindowState.Normal;

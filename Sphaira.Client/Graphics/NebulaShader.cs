@@ -61,7 +61,12 @@ namespace Sphaira.Client.Graphics
             frag.Logic = @"
                 void main(void)
                 {
-                    out_colour = vec4(colour.rgb, colour.a * max(0.0, 1.0 - length(var_texcoord)));
+                    const float pi = 3.14159265359;
+
+                    float dist = length(var_texcoord);
+                    if (dist > 1) discard;
+
+                    out_colour = vec4(colour.rgb, colour.a * cos(dist * pi));
                 }
             ";
 

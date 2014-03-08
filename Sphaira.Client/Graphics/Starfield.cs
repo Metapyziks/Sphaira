@@ -60,33 +60,43 @@ namespace Sphaira.Client.Graphics
 
         private static Nebula[] GenerateNebulae(this Random rand, int count, float near, float far)
         {
-            float minRad = 1f;
-            float maxRad = 8f;
+            var clrPairs = new Color4[,] {
+                { Color4.Red, Color4.Blue },
+                { Color4.Blue, Color4.Yellow },
+                { Color4.Yellow, Color4.Red }
+            };
 
-            var reds = new Vector3[32];
-            var blus = new Vector3[32];
-            for (int i = 0; i < reds.Length; ++i) {
-                reds[i] = rand.GetRandomPosition(near, far);
+            float minRad = 1f;
+            float maxRad = 16f;
+
+            int variation = rand.Next(1, 32);
+
+            var seta = new Vector3[variation];
+            var setb = new Vector3[variation];
+            for (int i = 0; i < variation; ++i) {
+                seta[i] = rand.GetRandomPosition(near, far);
+                setb[i] = rand.GetRandomPosition(near, far);
             }
-            for (int i = 0; i < blus.Length; ++i) {
-                blus[i] = rand.GetRandomPosition(near, far);
-            }
+
+            int index = rand.Next(clrPairs.GetLength(0));
+            var clra = clrPairs[index, 0];
+            var clrb = clrPairs[index, 1];
 
             var nebulae = new Nebula[count];
-
             for (int i = 0; i < count; ++i) {
                 var pos = rand.GetRandomPosition(near, far);
-                var red = reds.Sum(x => 1f / Math.Max(0.125f, (pos - x).LengthSquared));
-                var blu = blus.Sum(x => 1f / Math.Max(0.125f, (pos - x).LengthSquared));
+                var suma = seta.Sum(x => 1f / Math.Max(0.125f, (pos - x).LengthSquared));
+                var sumb = setb.Sum(x => 1f / Math.Max(0.125f, (pos - x).LengthSquared));
 
-                var shift = (2f * red * red) / ((red * red) + (blu * blu)) - 1f;
+                var shift = (suma * suma) / ((suma * suma) + (sumb * sumb));
+                var rad = rand.NextSingle(minRad, maxRad);
 
-                nebulae[i] = new Nebula(pos,
-                    rand.NextSingle(minRad, maxRad),
-                    new Color4(0.5f + shift * 0.5f,
-                        rand.NextSingle() * 0.1f,
-                        0.5f - shift * 0.5f,
-                        1f / 128f + rand.NextSingle() * rand.NextSingle() * 1f / 32f));
+                nebulae[i] = new Nebula(pos, rad,
+                    new Color4(
+                        clra.R * shift + clrb.R * (1f - shift),
+                        clra.G * shift + clrb.G * (1f - shift),
+                        clra.B * shift + clrb.B * (1f - shift),
+                        1f / 128f + rand.NextSingle() * rand.NextSingle() * (1f / 16f) * (rad / maxRad)));
             }
 
             return nebulae;
@@ -99,7 +109,7 @@ namespace Sphaira.Client.Graphics
             float near = 8f;
             float far = 32f;
 
-            var stars = rand.GenerateStars(16384, near, far);
+            var stars = rand.GenerateStars(rand.Next(512, 32768), near, far);
             var nebulae = rand.GenerateNebulae(8192, near, far);
             
             var camera = new Camera(resolution, resolution, MathHelper.PiOver2, 4f, 64f);
