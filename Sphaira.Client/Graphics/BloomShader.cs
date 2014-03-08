@@ -42,6 +42,7 @@ namespace Sphaira.Client.Graphics
 
                     for (int x = -diff; x <= diff; ++x) {
                         for (int y = -diff; y <= diff; ++y) {
+                            if (x * x + y * y > diff * diff) continue;
                             vec2 offset = vec2(x, y) * sizeFactor;
                             float mul = 1 / max(1, sqrt(x * x * rcpQual2 + y * y * rcpQual2));
                             sum += texture2D(frame, var_texcoord + offset) * mul;
