@@ -109,6 +109,7 @@ namespace Sphaira.Server.Network
                         
                         if (id < _handlers.Count) {
                             _handlers[id](msg);
+                            break;
                         }
                         
                         Console.WriteLine("Unhandled message type: {0}", id);
