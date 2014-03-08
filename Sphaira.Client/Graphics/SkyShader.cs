@@ -54,9 +54,13 @@ namespace Sphaira.Client.Graphics
 
         public SkyShader()
         {
-            var vert = new ShaderBuilder(ShaderType.VertexShader, false);
-            vert.AddUniform(ShaderVarType.Mat4, "view");
-            vert.AddUniform(ShaderVarType.Mat4, "proj");
+            BeginMode = BeginMode.Quads;
+        }
+
+        protected override void ConstructVertexShader(ShaderBuilder vert)
+        {
+            base.ConstructVertexShader(vert);
+
             vert.AddAttribute(ShaderVarType.Vec3, "in_vertex");
             vert.AddVarying(ShaderVarType.Vec3, "var_texcoord");
             vert.Logic = @"
@@ -68,11 +72,14 @@ namespace Sphaira.Client.Graphics
                     var_texcoord = in_vertex;
                 }
             ";
+        }
 
-            var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
+        protected override void ConstructFragmentShader(ShaderBuilder frag)
+        {
+            base.ConstructFragmentShader(frag);
+
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
             frag.AddUniform(ShaderVarType.Vec3, "sun");
-            frag.AddUniform(ShaderVarType.Vec3, "camera");
             frag.AddUniform(ShaderVarType.Float, "time");
             frag.Logic = GetSunSource + @"
                 void main(void)
@@ -81,27 +88,13 @@ namespace Sphaira.Client.Graphics
                     out_colour = vec4(sky + (vec3(1, 1, 1) - sky) * getSun(var_texcoord), 1);
                 }
             ";
-
-            VertexSource = vert.Generate();
-            FragmentSource = frag.Generate();
-
-            BeginMode = BeginMode.Quads;
-
-            Create();
         }
 
         protected override void OnCreate()
         {
-            AddUniform("view");
-            AddUniform("proj");
-            AddUniform("camera");
+            base.OnCreate();
 
             AddAttribute("in_vertex", 3);
-
-            AddUniform("sun");
-            AddUniform("time");
-
-            AddTexture("skybox");
 
             if (_sVB == null) {
                 _sVB = new VertexBuffer(3);
@@ -111,13 +104,7 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnBegin()
         {
-            if (Camera != null) {
-                var viewMat = Camera.ViewMatrix;
-                var projMat = Camera.PerspectiveMatrix;
-                SetUniform("view", ref viewMat);
-                SetUniform("proj", ref projMat);
-                SetUniform("camera", Camera.Position);
-            }
+            base.OnBegin();
 
             if (Camera is SphereCamera) {
                 SetTexture("skybox", ((SphereCamera) Camera).SkyBox);

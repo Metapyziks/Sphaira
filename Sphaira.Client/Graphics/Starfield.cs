@@ -62,14 +62,14 @@ namespace Sphaira.Client.Graphics
         {
             var clrPairs = new Color4[,] {
                 { Color4.Red, Color4.Blue },
-                { Color4.Blue, Color4.Yellow },
-                { Color4.Yellow, Color4.Red }
+                { Color4.Yellow, Color4.Red },
+                { Color4.Green, Color4.Red }
             };
 
             float minRad = 1f;
             float maxRad = 16f;
 
-            int variation = rand.Next(1, 32);
+            int variation = rand.Next(4, 32);
 
             var seta = new Vector3[variation];
             var setb = new Vector3[variation];
@@ -102,9 +102,9 @@ namespace Sphaira.Client.Graphics
             return nebulae;
         }
 
-        public static CubeMapTexture Generate(int seed, int resolution = 1024)
+        public static CubeMapTexture Generate(int seed = 0, int resolution = 1024)
         {
-            var rand = new Random(seed);
+            var rand = seed == 0 ? new Random() : new Random(seed);
 
             float near = 8f;
             float far = 32f;

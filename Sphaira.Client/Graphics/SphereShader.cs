@@ -31,11 +31,13 @@ namespace Sphaira.Client.Graphics
         public SphereShader()
         {
             DepthTest = true;
+            BeginMode = BeginMode.Quads;
+        }
 
-            var vert = new ShaderBuilder(ShaderType.VertexShader, false);
-            vert.AddUniform(ShaderVarType.Mat4, "view");
-            vert.AddUniform(ShaderVarType.Mat4, "proj");
-            vert.AddUniform(ShaderVarType.Vec3, "camera");
+        protected override void ConstructVertexShader(ShaderBuilder vert)
+        {
+            base.ConstructVertexShader(vert);
+
             vert.AddUniform(ShaderVarType.Vec4, "sphere");
             vert.AddAttribute(ShaderVarType.Vec2, "in_vertex");
             vert.AddVarying(ShaderVarType.Vec3, "var_position");
@@ -59,11 +61,12 @@ namespace Sphaira.Client.Graphics
                     gl_Position = proj * view * vec4(sphere.xyz + center + in_vertex.x * right + in_vertex.y * up, 1);
                 }
             ";
+        }
 
-            var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
-            frag.AddUniform(ShaderVarType.Mat4, "view");
-            frag.AddUniform(ShaderVarType.Mat4, "proj");
-            frag.AddUniform(ShaderVarType.Vec3, "camera");
+        protected override void ConstructFragmentShader(ShaderBuilder frag)
+        {
+            base.ConstructFragmentShader(frag);
+
             frag.AddUniform(ShaderVarType.Vec4, "sphere");
             frag.AddUniform(ShaderVarType.Vec3, "sun");
             frag.AddUniform(ShaderVarType.Float, "time");
@@ -103,30 +106,13 @@ namespace Sphaira.Client.Graphics
                     out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * sky, 1);
                 }
             ";
-
-            VertexSource = vert.Generate();
-            FragmentSource = frag.Generate();
-
-            BeginMode = BeginMode.Quads;
-
-            Create();
         }
 
         protected override void OnCreate()
         {
-            AddUniform("view");
-            AddUniform("proj");
-            AddUniform("camera");
+            base.OnCreate();
 
             AddAttribute("in_vertex", 2);
-
-            AddUniform("sphere");
-
-            AddUniform("sun");
-            AddUniform("light_model");
-            AddUniform("time");
-            AddUniform("colour");
-            AddTexture("skybox");
 
             if (_sVB == null) {
                 _sVB = new VertexBuffer(2);
@@ -141,13 +127,7 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnBegin()
         {
-            if (Camera != null) {
-                var viewMat = Camera.ViewMatrix;
-                var projMat = Camera.PerspectiveMatrix;
-                SetUniform("view", ref viewMat);
-                SetUniform("proj", ref projMat);
-                SetUniform("camera", Camera.Position);
-            }
+            base.OnBegin();
 
             if (DepthTest) {
                 GL.Enable(EnableCap.DepthTest);
@@ -174,6 +154,8 @@ namespace Sphaira.Client.Graphics
 
         protected override void OnEnd()
         {
+            base.OnEnd();
+
             if (DepthTest) {
                 GL.Disable(EnableCap.DepthTest);
             }

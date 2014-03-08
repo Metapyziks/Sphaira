@@ -78,8 +78,8 @@ namespace Sphaira.Client
                 TextureWrapS = TextureWrapMode.Clamp
             });
 
-            PostProcessShader.Instance.SetScreenSize(Width, Height);
-            PostProcessShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffer.Texture;
+            FxAAShader.Instance.SetScreenSize(Width, Height);
+            FxAAShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffer.Texture;
 
             _frameBufferSprite = new Sprite((BitmapTexture2D) _frameBuffer.Texture);
         }
@@ -89,7 +89,7 @@ namespace Sphaira.Client
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
-            _camera.SkyBox = Starfield.Generate(0x4af618a);
+            _camera.SkyBox = Starfield.Generate();
 
             _frameTimer = new Stopwatch();
             _timer = new Stopwatch();
@@ -230,8 +230,7 @@ namespace Sphaira.Client
             sphereShader.EndBatch();
             _frameBuffer.End();
 
-            PostProcessShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffer.Texture;
-            PostProcessShader.Instance.Render();
+            FxAAShader.Instance.Render();
 
             SwapBuffers();
             ++_frameCounter;
