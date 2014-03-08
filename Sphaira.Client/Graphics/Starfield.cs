@@ -113,8 +113,8 @@ namespace Sphaira.Client.Graphics
             var nebulae = rand.GenerateNebulae(8192, near, far);
             
             var camera = new Camera(resolution, resolution, MathHelper.PiOver2, 4f, 64f);
-            var sphereShader = new SphereShader { Camera = camera };
-            var nebulaShader = new NebulaShader { Camera = camera };
+            SphereShader.Instance.Camera = camera;
+            NebulaShader.Instance.Camera = camera;
             var target = new FrameBuffer(new BitmapTexture2D(new Bitmap(resolution, resolution)), 16);
 
             var angles = new[] {
@@ -135,17 +135,17 @@ namespace Sphaira.Client.Graphics
 
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-                nebulaShader.BeginBatch();
+                NebulaShader.Instance.BeginBatch();
                 foreach (var nebula in nebulae) {
-                    nebulaShader.Render(nebula);
+                    NebulaShader.Instance.Render(nebula);
                 }
-                nebulaShader.EndBatch();
+                NebulaShader.Instance.EndBatch();
 
-                sphereShader.BeginBatch();
+                SphereShader.Instance.BeginBatch();
                 foreach (var star in stars) {
-                    sphereShader.Render(star);
+                    SphereShader.Instance.Render(star);
                 }
-                sphereShader.EndBatch();
+                SphereShader.Instance.EndBatch();
 
                 var bmp = bmps[i] = new Bitmap(resolution, resolution);
 
@@ -156,7 +156,6 @@ namespace Sphaira.Client.Graphics
             target.End();
 
             target.Dispose();
-            sphereShader.Dispose();
 
             return new CubeMapTexture(bmps[0], bmps[1], bmps[2], bmps[3], bmps[4], bmps[5]);
         }

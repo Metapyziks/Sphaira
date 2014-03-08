@@ -31,6 +31,19 @@ namespace Sphaira.Client.Graphics
     public class NebulaShader : ShaderProgram3D<Camera>
     {
         private static VertexBuffer _sVB;
+        private static NebulaShader _instance;
+
+        public static NebulaShader Instance
+        {
+            get
+            {
+                if (_instance == null) {
+                    _instance = new NebulaShader();
+                }
+
+                return _instance;
+            }
+        }
 
         public NebulaShader()
         {

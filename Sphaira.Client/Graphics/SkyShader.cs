@@ -38,6 +38,19 @@ namespace Sphaira.Client.Graphics
         };
 
         private static VertexBuffer _sVB;
+        private static SkyShader _instance;
+
+        public static SkyShader Instance
+        {
+            get
+            {
+                if (_instance == null) {
+                    _instance = new SkyShader();
+                }
+
+                return _instance;
+            }
+        }
 
         public SkyShader()
         {

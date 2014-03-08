@@ -10,6 +10,19 @@ namespace Sphaira.Client.Graphics
     public class SphereShader : ShaderProgram3D<Camera>
     {
         private static VertexBuffer _sVB;
+        private static SphereShader _instance;
+
+        public static SphereShader Instance
+        {
+            get
+            {
+                if (_instance == null) {
+                    _instance = new SphereShader();
+                }
+
+                return _instance;
+            }
+        }
 
         public bool DepthTest { get; set; }
 

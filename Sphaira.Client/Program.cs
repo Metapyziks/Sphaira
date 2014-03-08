@@ -42,8 +42,6 @@ namespace Sphaira.Client
         }
 
         private SphereCamera _camera;
-        private SkyShader _skyShader;
-        private SphereShader _sphereShader;
         private Sphere _sphere;
         private Stopwatch _frameTimer;
         private Stopwatch _timer;
@@ -69,12 +67,6 @@ namespace Sphaira.Client
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
             _camera.SkyBox = Starfield.Generate(0x4af618a);
-
-            _sphereShader = new SphereShader();
-            _sphereShader.Camera = _camera;
-
-            _skyShader = new SkyShader();
-            _skyShader.Camera = _camera;
 
             _frameTimer = new Stopwatch();
             _timer = new Stopwatch();
@@ -115,10 +107,6 @@ namespace Sphaira.Client
                         if (_camera.Altitude <= _camera.EyeHeight) {
                             _camera.Jump(8f);
                         }
-                        break;
-                    case Key.Z:
-                        _camera = new SphereCamera(Width, Height, _sphere, _sphere.Radius);
-                        _sphereShader.Camera = _camera;
                         break;
                     case Key.G:
                         _camera.SkyBox.Dispose();
@@ -203,15 +191,19 @@ namespace Sphaira.Client
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
                 Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
 
-            _skyShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
-            _skyShader.SetUniform("sun", sun);
-            _skyShader.Render();
+            var skyShader = SkyShader.Instance;
+            skyShader.Camera = _camera;
+            skyShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+            skyShader.SetUniform("sun", sun);
+            skyShader.Render();
 
-            _sphereShader.BeginBatch();
-            _sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
-            _sphereShader.SetUniform("sun", sun);
-            _sphereShader.Render(_sphere);
-            _sphereShader.EndBatch();
+            var sphereShader = SphereShader.Instance;
+            sphereShader.Camera = _camera;
+            sphereShader.BeginBatch();
+            sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+            sphereShader.SetUniform("sun", sun);
+            sphereShader.Render(_sphere);
+            sphereShader.EndBatch();
 
             SwapBuffers();
             ++_frameCounter;
