@@ -30,7 +30,7 @@ namespace Sphaira.Client.Graphics
                 void main(void)
                 {
                     const int samples = 16;
-                    const float quality = 4;
+                    const float quality = 2;
 
                     vec4 source = texture2D(frame, var_texcoord);
                     vec4 sum = vec4(0);

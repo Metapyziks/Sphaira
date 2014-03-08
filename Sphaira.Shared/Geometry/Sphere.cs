@@ -103,7 +103,7 @@ namespace Sphaira.Shared.Geometry
             Colour = new Vector3(1f, 1f, 1f);
 
             Ambient = 0f;
-            Diffuse = 0.25f;
+            Diffuse = 0.5f;
             Specular = 0.75f;
             Reflect = 0.25f;
         }
