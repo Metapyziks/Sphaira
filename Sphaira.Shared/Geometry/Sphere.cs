@@ -104,7 +104,7 @@ namespace Sphaira.Shared.Geometry
 
             Ambient = 0f;
             Diffuse = 0.5f;
-            Specular = 1f;
+            Specular = 0.75f;
             Reflect = 0.25f;
         }
 

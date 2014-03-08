@@ -11,8 +11,11 @@ using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Textures;
 using OpenTKTK.Utils;
+using Lidgren.Network;
 using Sphaira.Client.Graphics;
 using Sphaira.Shared.Geometry;
+using System.Threading;
+using Sphaira.Client.Network;
 
 namespace Sphaira.Client
 {
@@ -34,9 +37,24 @@ namespace Sphaira.Client
         const float StandEyeLevel = 1.7f;
         const float CrouchEyeLevel = 0.8f;
 
+        private static int _cSkySeed;
+
         public static int Main(String[] args)
         {
             Trace.Listeners.Add(new DebugListener());
+
+            NetWrapper.RegisterMessageHandler("WorldInfo", msg => {
+                _cSkySeed = msg.ReadInt32();
+            });
+
+            NetWrapper.Connect("localhost", 14242);
+            NetWrapper.SendMessage(NetWrapper.CreateMessage("WorldInfo"), NetDeliveryMethod.ReliableUnordered);
+
+            _cSkySeed = 0;
+
+            while (_cSkySeed == 0) {
+                if (!NetWrapper.CheckForMessages()) Thread.Sleep(16);
+            }
 
             using (var app = new Program()) {
                 app.Run();
@@ -93,7 +111,7 @@ namespace Sphaira.Client
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
-            _camera.SkyBox = Starfield.Generate();
+            _camera.SkyBox = Starfield.Generate(_cSkySeed);
 
             _frameTimer = new Stopwatch();
             _timer = new Stopwatch();
@@ -135,10 +153,6 @@ namespace Sphaira.Client
                             _camera.Jump(8f);
                         }
                         break;
-                    case Key.G:
-                        _camera.SkyBox.Dispose();
-                        _camera.SkyBox = Starfield.Generate((int) _timer.Elapsed.TotalMilliseconds);
-                        break;
                     case Key.F11:
                         if (WindowState == WindowState.Fullscreen) {
                             WindowState = WindowState.Normal;
@@ -149,25 +163,14 @@ namespace Sphaira.Client
                     case Key.F12:
                         _takeScreenShot = true;
                         break;
-                    case Key.Number0:
-                    case Key.Number1:
-                    case Key.Number2:
-                    case Key.Number3:
-                    case Key.Number4:
-                    case Key.Number5:
-                    case Key.Number6:
-                    case Key.Number7:
-                    case Key.Number8:
-                    case Key.Number9:
-                        var n = (int) ke.Key - (int) Key.Number0;
-                        _sphere.Radius = (float) Math.Pow(2, n + 1);
-                        break;
                 }
             };
         }
 
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            NetWrapper.CheckForMessages();
+
             var move = Vector3.Zero;
 
             if (Keyboard[Key.W]) move -= Vector3.UnitZ;
@@ -176,7 +179,7 @@ namespace Sphaira.Client
             if (Keyboard[Key.D]) move += Vector3.UnitX;
 
             if (Keyboard[Key.ControlLeft]) {
-                _camera.EyeHeight = _sphere.Radius * 1.5f;
+                _camera.EyeHeight = CrouchEyeLevel;
             } else {
                 _camera.EyeHeight += (StandEyeLevel - _camera.EyeHeight) * 0.25f;
             }
@@ -237,7 +240,7 @@ namespace Sphaira.Client
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
-                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes / 12f));
+                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
 
             _frameBuffers[0].Begin();
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
