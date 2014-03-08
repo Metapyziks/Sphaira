@@ -47,8 +47,7 @@ namespace Sphaira.Client
         private SphereCamera _camera;
         private Sphere _sphere;
 
-        private FrameBuffer _frameBuffer;
-        private Sprite _frameBufferSprite;
+        private FrameBuffer[] _frameBuffers;
 
         private Stopwatch _frameTimer;
         private Stopwatch _timer;
@@ -67,21 +66,24 @@ namespace Sphaira.Client
 
             _camera.SetScreenSize(Width, Height);
 
-            if (_frameBuffer != null) {
-                _frameBuffer.Dispose();
+            if (_frameBuffers != null) {
+                foreach (var buffer in _frameBuffers) {
+                    buffer.Dispose();
+                }
             }
 
-            _frameBuffer = new FrameBuffer(new BitmapTexture2D(Width, Height) {
-                MinFilter = TextureMinFilter.Nearest,
-                MagFilter = TextureMagFilter.Nearest,
-                TextureWrapR = TextureWrapMode.Clamp,
-                TextureWrapS = TextureWrapMode.Clamp
-            });
+            _frameBuffers = new FrameBuffer[2];
+            for (int i = 0; i < 2; ++i) {
+                _frameBuffers[i] = new FrameBuffer(new BitmapTexture2D(Width, Height) {
+                    MinFilter = TextureMinFilter.Nearest,
+                    MagFilter = TextureMagFilter.Nearest,
+                    TextureWrapR = TextureWrapMode.Clamp,
+                    TextureWrapS = TextureWrapMode.Clamp
+                });
+            }
 
+            BloomShader.Instance.SetScreenSize(Width, Height);
             FxAAShader.Instance.SetScreenSize(Width, Height);
-            FxAAShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffer.Texture;
-
-            _frameBufferSprite = new Sprite((BitmapTexture2D) _frameBuffer.Texture);
         }
 
         protected override void OnLoad(EventArgs e)
@@ -212,24 +214,30 @@ namespace Sphaira.Client
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
                 Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
 
-            _frameBuffer.Begin();
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
+            _frameBuffers[0].Begin();
+                GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            var skyShader = SkyShader.Instance;
-            skyShader.Camera = _camera;
-            skyShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
-            skyShader.SetUniform("sun", sun);
-            skyShader.Render();
+                var skyShader = SkyShader.Instance;
+                skyShader.Camera = _camera;
+                skyShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+                skyShader.SetUniform("sun", sun);
+                skyShader.Render();
 
-            var sphereShader = SphereShader.Instance;
-            sphereShader.Camera = _camera;
-            sphereShader.BeginBatch();
-            sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
-            sphereShader.SetUniform("sun", sun);
-            sphereShader.Render(_sphere);
-            sphereShader.EndBatch();
-            _frameBuffer.End();
+                var sphereShader = SphereShader.Instance;
+                sphereShader.Camera = _camera;
+                sphereShader.BeginBatch();
+                    sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+                    sphereShader.SetUniform("sun", sun);
+                    sphereShader.Render(_sphere);
+                sphereShader.EndBatch();
+            _frameBuffers[0].End();
 
+            _frameBuffers[1].Begin();
+                BloomShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffers[0].Texture;
+                BloomShader.Instance.Render();
+            _frameBuffers[1].End();
+
+            FxAAShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffers[1].Texture;
             FxAAShader.Instance.Render();
 
             SwapBuffers();

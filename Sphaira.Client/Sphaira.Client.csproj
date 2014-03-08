@@ -48,6 +48,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Graphics\BloomShader.cs" />
     <Compile Include="Graphics\FxAAShader.cs" />
     <Compile Include="Graphics\NebulaShader.cs" />
     <Compile Include="Graphics\PostProcessShader.cs" />
