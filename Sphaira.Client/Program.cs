@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 using OpenTK;
 using OpenTK.Graphics;
@@ -54,6 +55,7 @@ namespace Sphaira.Client
         private int _frameCounter;
 
         private bool _captureMouse;
+        private bool _takeScreenShot;
 
         public Program() : base(1280, 720, new GraphicsMode(new ColorFormat(8, 8, 8, 0), 32))
         {
@@ -144,6 +146,9 @@ namespace Sphaira.Client
                             WindowState = WindowState.Fullscreen;
                         }
                         break;
+                    case Key.F12:
+                        _takeScreenShot = true;
+                        break;
                     case Key.Number0:
                     case Key.Number1:
                     case Key.Number2:
@@ -209,6 +214,26 @@ namespace Sphaira.Client
             _camera.UpdateFrame(e);
         }
 
+        private void TakeScreenShot()
+        {
+            var bmp = new Bitmap(Width, Height);
+            var data = bmp.LockBits(new Rectangle(0, 0, Width, Height), ImageLockMode.WriteOnly, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+            GL.ReadPixels(0, 0, Width, Height, OpenTK.Graphics.OpenGL.PixelFormat.Bgra, PixelType.UnsignedByte, data.Scan0);
+            bmp.UnlockBits(data);
+
+            var dateName = DateTime.Now.ToString()
+                .Replace("/", "-")
+                .Replace(" ", "-")
+                .Replace(":", "-");
+
+            bmp.RotateFlip(RotateFlipType.RotateNoneFlipY);
+            bmp.Save(String.Format("sphaira-{0}-{1:D3}.png", dateName, DateTime.Now.Millisecond), ImageFormat.Png);
+
+            bmp.Dispose();
+
+            _takeScreenShot = false;
+        }
+
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
@@ -239,6 +264,8 @@ namespace Sphaira.Client
 
             FxAAShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffers[1].Texture;
             FxAAShader.Instance.Render();
+
+            if (_takeScreenShot) TakeScreenShot();
 
             SwapBuffers();
             ++_frameCounter;
