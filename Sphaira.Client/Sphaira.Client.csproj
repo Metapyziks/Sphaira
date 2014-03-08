@@ -49,6 +49,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Graphics\NebulaShader.cs" />
+    <Compile Include="Graphics\PostProcessShader.cs" />
     <Compile Include="Graphics\SkyShader.cs" />
     <Compile Include="Graphics\SphereShader.cs" />
     <Compile Include="Graphics\SphereCamera.cs" />

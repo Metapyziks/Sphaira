@@ -6,6 +6,9 @@ using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
+using OpenTKTK.Scene;
+using OpenTKTK.Shaders;
+using OpenTKTK.Textures;
 using OpenTKTK.Utils;
 using Sphaira.Client.Graphics;
 using Sphaira.Shared.Geometry;
@@ -43,6 +46,10 @@ namespace Sphaira.Client
 
         private SphereCamera _camera;
         private Sphere _sphere;
+
+        private FrameBuffer _frameBuffer;
+        private Sprite _frameBufferSprite;
+
         private Stopwatch _frameTimer;
         private Stopwatch _timer;
         private int _frameCounter;
@@ -59,6 +66,22 @@ namespace Sphaira.Client
             GL.Viewport(ClientRectangle);
 
             _camera.SetScreenSize(Width, Height);
+
+            if (_frameBuffer != null) {
+                _frameBuffer.Dispose();
+            }
+
+            _frameBuffer = new FrameBuffer(new BitmapTexture2D(Width, Height) {
+                MinFilter = TextureMinFilter.Nearest,
+                MagFilter = TextureMagFilter.Nearest,
+                TextureWrapR = TextureWrapMode.Clamp,
+                TextureWrapS = TextureWrapMode.Clamp
+            });
+
+            PostProcessShader.Instance.SetScreenSize(Width, Height);
+            PostProcessShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffer.Texture;
+
+            _frameBufferSprite = new Sprite((BitmapTexture2D) _frameBuffer.Texture);
         }
 
         protected override void OnLoad(EventArgs e)
@@ -186,10 +209,11 @@ namespace Sphaira.Client
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
-            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
                 Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
+
+            _frameBuffer.Begin();
+            GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
             var skyShader = SkyShader.Instance;
             skyShader.Camera = _camera;
@@ -204,6 +228,10 @@ namespace Sphaira.Client
             sphereShader.SetUniform("sun", sun);
             sphereShader.Render(_sphere);
             sphereShader.EndBatch();
+            _frameBuffer.End();
+
+            PostProcessShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffer.Texture;
+            PostProcessShader.Instance.Render();
 
             SwapBuffers();
             ++_frameCounter;

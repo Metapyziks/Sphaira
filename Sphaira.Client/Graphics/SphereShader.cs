@@ -1,7 +1,9 @@
-﻿using OpenTK;
+﻿using System.Drawing;
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
+using OpenTKTK.Textures;
 using OpenTKTK.Utils;
 using Sphaira.Shared.Geometry;
 
@@ -10,17 +12,17 @@ namespace Sphaira.Client.Graphics
     public class SphereShader : ShaderProgram3D<Camera>
     {
         private static VertexBuffer _sVB;
-        private static SphereShader _instance;
+        private static SphereShader _sInstance;
 
         public static SphereShader Instance
         {
             get
             {
-                if (_instance == null) {
-                    _instance = new SphereShader();
+                if (_sInstance == null) {
+                    _sInstance = new SphereShader();
                 }
 
-                return _instance;
+                return _sInstance;
             }
         }
 
@@ -75,7 +77,6 @@ namespace Sphaira.Client.Graphics
                     vec3 cam = camera - sphere.xyz;
                     float len2 = dot(var_position, var_position);
 
-
                     if (len2 > 1) discard;
 
                     vec3 l = normalize(cam / r - var_position);
@@ -125,7 +126,6 @@ namespace Sphaira.Client.Graphics
             AddUniform("light_model");
             AddUniform("time");
             AddUniform("colour");
-
             AddTexture("skybox");
 
             if (_sVB == null) {

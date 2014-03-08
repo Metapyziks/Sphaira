@@ -38,23 +38,23 @@ namespace Sphaira.Client.Graphics
         };
 
         private static VertexBuffer _sVB;
-        private static SkyShader _instance;
+        private static SkyShader _sInstance;
 
         public static SkyShader Instance
         {
             get
             {
-                if (_instance == null) {
-                    _instance = new SkyShader();
+                if (_sInstance == null) {
+                    _sInstance = new SkyShader();
                 }
 
-                return _instance;
+                return _sInstance;
             }
         }
 
         public SkyShader()
         {
-            ShaderBuilder vert = new ShaderBuilder(ShaderType.VertexShader, false);
+            var vert = new ShaderBuilder(ShaderType.VertexShader, false);
             vert.AddUniform(ShaderVarType.Mat4, "view");
             vert.AddUniform(ShaderVarType.Mat4, "proj");
             vert.AddAttribute(ShaderVarType.Vec3, "in_vertex");
@@ -69,7 +69,7 @@ namespace Sphaira.Client.Graphics
                 }
             ";
 
-            ShaderBuilder frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
+            var frag = new ShaderBuilder(ShaderType.FragmentShader, false, vert);
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
             frag.AddUniform(ShaderVarType.Vec3, "sun");
             frag.AddUniform(ShaderVarType.Vec3, "camera");
@@ -108,6 +108,7 @@ namespace Sphaira.Client.Graphics
                 _sVB.SetData(_sVerts);
             }
         }
+
         protected override void OnBegin()
         {
             if (Camera != null) {
