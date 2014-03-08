@@ -95,9 +95,9 @@ namespace Sphaira.Client.Graphics
                     vec3 normal = normalize(pos);
                     vec3 lookdir = normalize(pos - cam);
                     vec3 sundir = normalize(sun - camera);
-                    float light = light_model.x + max(1.0 / 32.0, dot(normal, sundir)) * (1 - light_model.x);
-                    float check = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125;
-                    vec3 clr = colour * (light_model.y * check + (1 - light_model.y)) * light;
+                    float light = max(1.0 / 32.0, dot(normal, sundir));
+                    float check = 1 - ((int(pos.x) + int(pos.y) + int(pos.z)) & 1) * 0.125;
+                    vec3 clr = colour * (light_model.y * check * light * (1 - light_model.x) + light_model.x);
 
                     vec3 skypos = normalize(reflect(lookdir, normal));
                     vec3 sky = textureCube(skybox, skypos).rgb;

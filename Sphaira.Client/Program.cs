@@ -212,7 +212,7 @@ namespace Sphaira.Client
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
-                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
+                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalMinutes / 12f));
 
             _frameBuffers[0].Begin();
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
