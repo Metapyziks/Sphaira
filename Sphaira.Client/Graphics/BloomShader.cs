@@ -35,18 +35,16 @@ namespace Sphaira.Client.Graphics
                     vec4 source = texture2D(frame, var_texcoord);
                     vec4 sum = vec4(0);
                     int diff = (samples - 1) / 2;
+                    int diff2 = diff * diff;
                     vec2 sizeFactor = vec2(1) / screen_resolution * quality;
   
-                    float tot = 0;
-                    float rcpQual2 = 1 / (quality * quality);
-
+                    int tot = 0;
                     for (int x = -diff; x <= diff; ++x) {
                         for (int y = -diff; y <= diff; ++y) {
-                            if (x * x + y * y > diff * diff) continue;
+                            if (x * x + y * y > diff2) continue;
                             vec2 offset = vec2(x, y) * sizeFactor;
-                            float mul = 1 / max(1, sqrt(x * x * rcpQual2 + y * y * rcpQual2));
-                            sum += texture2D(frame, var_texcoord + offset) * mul;
-                            tot += mul;
+                            sum += texture2D(frame, var_texcoord + offset);
+                            ++tot;
                         }
                     }
   
