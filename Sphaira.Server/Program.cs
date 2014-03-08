@@ -18,11 +18,9 @@ namespace Sphaira.Server
             int skySeed = rand.Next(1, int.MaxValue);
 
             NetWrapper.RegisterMessageHandler("WorldInfo", msg => {
-                var reply = NetWrapper.CreateMessage("WorldInfo");
-
-                reply.Write(skySeed);
-
-                NetWrapper.SendMessage(reply, msg.SenderConnection, NetDeliveryMethod.ReliableUnordered);
+                NetWrapper.SendMessage("WorldInfo", reply => {
+                    reply.Write(skySeed);
+                }, msg.SenderConnection, NetDeliveryMethod.ReliableUnordered);
             });
 
             NetWrapper.StartListening(14242, 128);

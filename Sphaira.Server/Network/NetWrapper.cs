@@ -34,16 +34,24 @@ namespace Sphaira.Server.Network
             _server.Start();
         }
 
-        public static NetOutgoingMessage CreateMessage(String ident)
+        public static void SendMessage(String ident, Action<NetOutgoingMessage> builder,
+            NetConnection recipient, NetDeliveryMethod method)
         {
             var msg = _server.CreateMessage();
             msg.Write(_indices[ident]);
-            return msg;
+            builder(msg);
+            _server.SendMessage(msg, recipient, method);
         }
 
-        public static void SendMessage(NetOutgoingMessage msg, NetConnection recipient, NetDeliveryMethod method)
+        public static void RegisterIdentifier(String ident)
         {
-            _server.SendMessage(msg, recipient, method);
+            if (!_idents.Contains(ident)) {
+                _indices.Add(ident, (ushort) _idents.Count);
+                _idents.Add(ident);
+                _handlers.Add(null);
+            } else {
+                _handlers[_idents.IndexOf(ident)] = null;
+            }
         }
 
         public static void RegisterMessageHandler(String ident, Action<NetIncomingMessage> handler)
@@ -54,13 +62,8 @@ namespace Sphaira.Server.Network
                 _handlersIdent[ident] = handler;
             }
 
-            if (!_idents.Contains(ident)) {
-                _indices.Add(ident, (ushort) _idents.Count);
-                _idents.Add(ident);
-                _handlers.Add(handler);
-            } else {
-                _handlers[_idents.IndexOf(ident)] = handler;
-            }
+            RegisterIdentifier(ident);
+            _handlers[_idents.IndexOf(ident)] = handler;
         }
 
         private static void SendMessageTypes(NetOutgoingMessage msg)

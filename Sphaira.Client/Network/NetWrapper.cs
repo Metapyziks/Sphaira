@@ -45,16 +45,20 @@ namespace Sphaira.Client.Network
             RequestMessageTypes();
         }
 
-        public static NetOutgoingMessage CreateMessage(String ident)
+        public static void SendMessage(String ident, NetDeliveryMethod method)
         {
             var msg = _client.CreateMessage();
             msg.Write(_indices[ident]);
-            return msg;
+            _client.SendMessage(msg, method);
         }
 
-        public static void SendMessage(NetOutgoingMessage msg, NetDeliveryMethod method)
+        public static void SendMessage(String ident, Action<NetOutgoingMessage> builder,
+            NetDeliveryMethod method)
         {
-            _client.SendMessage(msg, _connection, method);
+            var msg = _client.CreateMessage();
+            msg.Write(_indices[ident]);
+            builder(msg);
+            _client.SendMessage(msg, method);
         }
 
         public static void RegisterMessageHandler(String ident, Action<NetIncomingMessage> handler)
@@ -74,7 +78,7 @@ namespace Sphaira.Client.Network
         {
             var msg = _client.CreateMessage();
             msg.Write((ushort) 0xffff);
-            SendMessage(msg, NetDeliveryMethod.ReliableUnordered);
+            _client.SendMessage(msg, NetDeliveryMethod.ReliableUnordered);
 
             _handlers = null;
 

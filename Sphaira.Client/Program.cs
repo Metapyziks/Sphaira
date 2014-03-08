@@ -48,7 +48,7 @@ namespace Sphaira.Client
             });
 
             NetWrapper.Connect("localhost", 14242);
-            NetWrapper.SendMessage(NetWrapper.CreateMessage("WorldInfo"), NetDeliveryMethod.ReliableUnordered);
+            NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableUnordered);
 
             _cSkySeed = 0;
 
