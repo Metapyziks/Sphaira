@@ -102,13 +102,13 @@ namespace Sphaira.Client
                 }
             });
 
-            NetWrapper.Connect("localhost", 14242);
-            NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableUnordered);
-
             _sSkySeed = 0;
             _sMyID = 0;
             _sPlayers = new Dictionary<ushort, PlayerInfo>();
 
+            NetWrapper.Connect("localhost", 14242);
+            NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableOrdered, 0);
+            
             while (_sSkySeed == 0) {
                 if (!NetWrapper.CheckForMessages()) Thread.Sleep(16);
             }

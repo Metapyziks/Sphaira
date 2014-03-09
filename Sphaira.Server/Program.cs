@@ -57,7 +57,7 @@ namespace Sphaira.Server
                 foreach (var player in _players.Values) {
                     msg.Write(player.ID);
                 }
-            }, recipients, NetDeliveryMethod.ReliableSequenced, 0);
+            }, recipients, NetDeliveryMethod.ReliableOrdered, 0);
         }
 
         public static int Main(String[] args)
@@ -74,7 +74,7 @@ namespace Sphaira.Server
                 NetWrapper.SendMessage("WorldInfo", reply => {
                     reply.Write(_skySeed);
                     reply.Write(player.ID);
-                }, msg.SenderConnection, NetDeliveryMethod.ReliableUnordered);
+                }, msg.SenderConnection, NetDeliveryMethod.ReliableOrdered, 0);
             });
 
             NetWrapper.RegisterMessageHandler("PlayerPos", msg => {
@@ -96,6 +96,17 @@ namespace Sphaira.Server
 
             while (NetWrapper.Status != NetPeerStatus.NotRunning) {
                 if (!NetWrapper.CheckForMessages()) Thread.Sleep(16);
+
+                var connected = NetWrapper.Connections;
+                var disconnected = _players.Values.Where(x => !connected.Contains(x.Connection)).ToArray();
+
+                if (disconnected.Length > 0) {
+                    foreach (var player in disconnected) {
+                        _players.Remove(player.Connection);
+                    }
+
+                    UpdatePlayers(connected);
+                }
             }
 
             return 0;

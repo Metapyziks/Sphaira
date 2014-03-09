@@ -78,7 +78,7 @@ namespace Sphaira.Client.Network
         {
             var msg = _client.CreateMessage();
             msg.Write((ushort) 0xffff);
-            _client.SendMessage(msg, NetDeliveryMethod.ReliableUnordered);
+            _client.SendMessage(msg, NetDeliveryMethod.ReliableOrdered, 0);
 
             _handlers = null;
 

@@ -119,7 +119,8 @@ namespace Sphaira.Server.Network
                             var rsp = _server.CreateMessage();
                             rsp.Write(id);
                             SendMessageTypes(rsp);
-                            _server.SendMessage(rsp, msg.SenderConnection, NetDeliveryMethod.ReliableUnordered);
+                            _server.SendMessage(rsp, msg.SenderConnection,
+                                NetDeliveryMethod.ReliableOrdered, 0);
                             break;
                         }
                         
