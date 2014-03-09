@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -67,12 +68,16 @@ namespace Sphaira.Server
             _skySeed = rand.Next(1, int.MaxValue);
             _players = new Dictionary<NetConnection, PlayerInfo>();
 
+            var timer = new Stopwatch();
+            timer.Start();
+
             NetWrapper.RegisterIdentifier("PlayerInfo");
 
             NetWrapper.RegisterMessageHandler("WorldInfo", msg => {
                 var player = GetPlayer(msg.SenderConnection);
                 NetWrapper.SendMessage("WorldInfo", reply => {
                     reply.Write(_skySeed);
+                    reply.Write(timer.Elapsed.TotalSeconds);
                     reply.Write(player.ID);
                 }, msg.SenderConnection, NetDeliveryMethod.ReliableOrdered, 0);
             });

@@ -22,6 +22,11 @@ namespace Sphaira.Client.Network
         private static NetClient _client;
         private static NetConnection _connection;
 
+        public static double AverageRoundTripTime
+        {
+            get { return (double) _connection.AverageRoundtripTime; }
+        }
+
         public static NetConnectionStatus Status
         {
             get { return _connection != null ? _connection.Status : NetConnectionStatus.Disconnected; }

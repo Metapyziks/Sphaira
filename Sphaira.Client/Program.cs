@@ -60,6 +60,14 @@ namespace Sphaira.Client
         const float StandEyeLevel = 1.7f;
         const float CrouchEyeLevel = 0.8f;
 
+        private static Stopwatch _sTimer;
+        private static double _sTimerOffset;
+
+        public static double Time
+        {
+            get { return _sTimer.Elapsed.TotalSeconds + _sTimerOffset; }
+        }
+
         private static int _sSkySeed;
         private static ushort _sMyID;
         private static int _sQuality;
@@ -70,9 +78,14 @@ namespace Sphaira.Client
         {
             Trace.Listeners.Add(new DebugListener());
 
+            _sTimer = new Stopwatch();
+
             NetWrapper.RegisterMessageHandler("WorldInfo", msg => {
                 _sSkySeed = msg.ReadInt32();
+                _sTimerOffset = msg.ReadDouble() + NetWrapper.AverageRoundTripTime * 0.5;
                 _sMyID = msg.ReadUInt16();
+
+                _sTimer.Restart();
             });
 
             NetWrapper.RegisterMessageHandler("PlayerInfo", msg => {
@@ -149,8 +162,8 @@ namespace Sphaira.Client
         private FrameBuffer[] _frameBuffers;
 
         private Stopwatch _frameTimer;
-        private Stopwatch _timer;
         private Stopwatch _lastPosUpdateTimer;
+
         private int _frameCounter;
         private Vector3 _oldPos;
 
@@ -201,11 +214,9 @@ namespace Sphaira.Client
             _camera.SkyBox = Starfield.Generate(_sSkySeed);
 
             _frameTimer = new Stopwatch();
-            _timer = new Stopwatch();
             _lastPosUpdateTimer = new Stopwatch();
 
             _frameTimer.Start();
-            _timer.Start();
             _lastPosUpdateTimer.Start();
 
             _frameCounter = 0;
@@ -288,11 +299,11 @@ namespace Sphaira.Client
                 move = Vector3.Transform(move.Normalized(), rot);
 
                 if (Keyboard[Key.ControlLeft]) {
-                    move *= 64f;
-                } else if (Keyboard[Key.ShiftLeft]) {
                     move *= 16f;
-                } else {
+                } else if (Keyboard[Key.ShiftLeft]) {
                     move *= 48f;
+                } else {
+                    move *= 24f;
                 }
 
 
@@ -346,7 +357,7 @@ namespace Sphaira.Client
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
-                Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
+                Quaternion.FromAxisAngle(Vector3.UnitY, (float) Time / 12f));
 
             if (_sQuality > 0) _frameBuffers[0].Begin();
 
@@ -354,7 +365,7 @@ namespace Sphaira.Client
 
                 var skyShader = SkyShader.Instance;
                 skyShader.Camera = _camera;
-                skyShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+                skyShader.SetUniform("time", (float) Time);
                 skyShader.SetUniform("sun", sun);
                 skyShader.Render();
 
@@ -364,7 +375,7 @@ namespace Sphaira.Client
 
                 sphereShader.BeginBatch();
 
-                    sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
+                    sphereShader.SetUniform("time", (float) Time);
                     sphereShader.SetUniform("sun", sun);
                     sphereShader.Render(_sphere);
 
