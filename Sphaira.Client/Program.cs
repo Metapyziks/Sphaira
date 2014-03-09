@@ -103,7 +103,7 @@ namespace Sphaira.Client
             });
 
             _sSkySeed = 0;
-            _sMyID = 0;
+            _sMyID = 0xffff;
             _sPlayers = new Dictionary<ushort, PlayerInfo>();
 
             NetWrapper.Connect("localhost", 14242);
@@ -129,6 +129,7 @@ namespace Sphaira.Client
         private Stopwatch _timer;
         private Stopwatch _lastPosUpdateTimer;
         private int _frameCounter;
+        private Vector3 _oldPos;
 
         private bool _captureMouse;
         private bool _takeScreenShot;
@@ -280,14 +281,16 @@ namespace Sphaira.Client
                 player.UpdateFrame(e);
             }
 
-            if (_lastPosUpdateTimer.Elapsed.TotalSeconds > 1f / 30f) {
+            var pos = _camera.Position;
+            var period = _lastPosUpdateTimer.Elapsed.TotalSeconds;
+            if (period > 1.0 || (period > 1.0 / 30.0 && (_oldPos - pos).Length > 1f / 16f)) {
                 NetWrapper.SendMessage("PlayerPos", msg => {
-                    var pos = _camera.Position;
                     msg.Write(pos.X);
                     msg.Write(pos.Y);
                     msg.Write(pos.Z);
                 }, NetDeliveryMethod.ReliableSequenced, 1);
 
+                _oldPos = pos;
                 _lastPosUpdateTimer.Restart();
             }
         }
