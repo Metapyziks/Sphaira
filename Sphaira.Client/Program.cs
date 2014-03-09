@@ -138,6 +138,8 @@ namespace Sphaira.Client
                 app.Run();
             }
 
+            NetWrapper.Disconnect();
+
             return 0;
         }
 

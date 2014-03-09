@@ -45,6 +45,14 @@ namespace Sphaira.Client.Network
             RequestMessageTypes();
         }
 
+        public static void Disconnect()
+        {
+            _client.Disconnect("Quit");
+
+            _client = null;
+            _connection = null;
+        }
+
         public static void SendMessage(String ident, NetDeliveryMethod method, int sequenceChannel = 0)
         {
             var msg = _client.CreateMessage();
