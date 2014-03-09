@@ -18,7 +18,7 @@ namespace Sphaira.Client.Graphics
                 vec3 up = cross(vec3(0, 1, 0), sundir);
                 vec3 right = cross(up, sundir);
 
-                float mag = dot(sundir, pos);
+                float mag = max(0, dot(sundir, pos));
                 float ang = atan(dot(lookdir, up), dot(lookdir, right));
                 float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 - time * 3) * 0.01 + 0.4;
 
