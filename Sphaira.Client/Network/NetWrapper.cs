@@ -45,20 +45,20 @@ namespace Sphaira.Client.Network
             RequestMessageTypes();
         }
 
-        public static void SendMessage(String ident, NetDeliveryMethod method)
+        public static void SendMessage(String ident, NetDeliveryMethod method, int sequenceChannel = 0)
         {
             var msg = _client.CreateMessage();
             msg.Write(_indices[ident]);
-            _client.SendMessage(msg, method);
+            _client.SendMessage(msg, method, sequenceChannel);
         }
 
         public static void SendMessage(String ident, Action<NetOutgoingMessage> builder,
-            NetDeliveryMethod method)
+            NetDeliveryMethod method, int sequenceChannel = 0)
         {
             var msg = _client.CreateMessage();
             msg.Write(_indices[ident]);
             builder(msg);
-            _client.SendMessage(msg, method);
+            _client.SendMessage(msg, method, sequenceChannel);
         }
 
         public static void RegisterMessageHandler(String ident, Action<NetIncomingMessage> handler)

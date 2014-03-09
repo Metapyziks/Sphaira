@@ -16,6 +16,8 @@ using Sphaira.Client.Graphics;
 using Sphaira.Shared.Geometry;
 using System.Threading;
 using Sphaira.Client.Network;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Sphaira.Client
 {
@@ -34,25 +36,80 @@ namespace Sphaira.Client
             }
         }
 
+        private class PlayerInfo
+        {
+            public ushort ID { get; private set; }
+
+            public Sphere Sphere { get; private set; }
+
+            public Vector3 Position { get; set; }
+
+            public PlayerInfo(ushort id)
+            {
+                ID = id;
+                Sphere = new Sphere(Vector3.Zero, 0.5f, 0f);
+                Position = Vector3.Zero;
+            }
+
+            public void UpdateFrame(FrameEventArgs e)
+            {
+                Sphere.Position += (Position - Sphere.Position) * 0.25f;
+            }
+        }
+
         const float StandEyeLevel = 1.7f;
         const float CrouchEyeLevel = 0.8f;
 
-        private static int _cSkySeed;
+        private static int _sSkySeed;
+        private static ushort _sMyID;
+
+        private static Dictionary<ushort, PlayerInfo> _sPlayers;
 
         public static int Main(String[] args)
         {
             Trace.Listeners.Add(new DebugListener());
 
             NetWrapper.RegisterMessageHandler("WorldInfo", msg => {
-                _cSkySeed = msg.ReadInt32();
+                _sSkySeed = msg.ReadInt32();
+                _sMyID = msg.ReadUInt16();
+            });
+
+            NetWrapper.RegisterMessageHandler("PlayerInfo", msg => {
+                var count = msg.ReadUInt16();
+                var players = new ushort[count];
+
+                for (int i = 0; i < count; ++i) {
+                    var id = players[i] = msg.ReadUInt16();
+
+                    if (id != _sMyID && !_sPlayers.ContainsKey(id)) {
+                        _sPlayers.Add(id, new PlayerInfo(id));
+                    }
+                }
+
+                var removed = _sPlayers.Keys.Where(x => x == _sMyID || !players.Contains(x)).ToArray();
+
+                foreach (var id in removed) {
+                    _sPlayers.Remove(id);
+                }
+            });
+
+            NetWrapper.RegisterMessageHandler("PlayerPos", msg => {
+                var id = msg.ReadUInt16();
+
+                if (_sPlayers.ContainsKey(id)) {
+                    var player = _sPlayers[id];
+                    player.Position = new Vector3(msg.ReadFloat(), msg.ReadFloat(), msg.ReadFloat());
+                }
             });
 
             NetWrapper.Connect("localhost", 14242);
             NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableUnordered);
 
-            _cSkySeed = 0;
+            _sSkySeed = 0;
+            _sMyID = 0;
+            _sPlayers = new Dictionary<ushort, PlayerInfo>();
 
-            while (_cSkySeed == 0) {
+            while (_sSkySeed == 0) {
                 if (!NetWrapper.CheckForMessages()) Thread.Sleep(16);
             }
 
@@ -70,6 +127,7 @@ namespace Sphaira.Client
 
         private Stopwatch _frameTimer;
         private Stopwatch _timer;
+        private Stopwatch _lastPosUpdateTimer;
         private int _frameCounter;
 
         private bool _captureMouse;
@@ -99,7 +157,7 @@ namespace Sphaira.Client
                     MagFilter = TextureMagFilter.Nearest,
                     TextureWrapS = TextureWrapMode.ClampToEdge,
                     TextureWrapT = TextureWrapMode.ClampToEdge
-                });
+                }, i == 0 ? 16 : 0);
             }
 
             BloomShader.Instance.SetScreenSize(Width, Height);
@@ -111,13 +169,15 @@ namespace Sphaira.Client
             _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
-            _camera.SkyBox = Starfield.Generate(_cSkySeed);
+            _camera.SkyBox = Starfield.Generate(_sSkySeed);
 
             _frameTimer = new Stopwatch();
             _timer = new Stopwatch();
+            _lastPosUpdateTimer = new Stopwatch();
 
             _frameTimer.Start();
             _timer.Start();
+            _lastPosUpdateTimer.Start();
 
             _frameCounter = 0;
 
@@ -215,6 +275,21 @@ namespace Sphaira.Client
             }
 
             _camera.UpdateFrame(e);
+
+            foreach (var player in _sPlayers.Values) {
+                player.UpdateFrame(e);
+            }
+
+            if (_lastPosUpdateTimer.Elapsed.TotalSeconds > 1f / 30f) {
+                NetWrapper.SendMessage("PlayerPos", msg => {
+                    var pos = _camera.Position;
+                    msg.Write(pos.X);
+                    msg.Write(pos.Y);
+                    msg.Write(pos.Z);
+                }, NetDeliveryMethod.ReliableSequenced, 1);
+
+                _lastPosUpdateTimer.Restart();
+            }
         }
 
         private void TakeScreenShot()
@@ -252,11 +327,16 @@ namespace Sphaira.Client
                 skyShader.Render();
 
                 var sphereShader = SphereShader.Instance;
+                sphereShader.DepthTest = true;
                 sphereShader.Camera = _camera;
                 sphereShader.BeginBatch();
                     sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
                     sphereShader.SetUniform("sun", sun);
                     sphereShader.Render(_sphere);
+
+                    foreach (var player in _sPlayers.Values) {
+                        sphereShader.Render(player.Sphere);
+                    }
                 sphereShader.EndBatch();
             _frameBuffers[0].End();
 

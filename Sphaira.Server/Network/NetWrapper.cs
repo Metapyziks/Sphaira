@@ -24,6 +24,11 @@ namespace Sphaira.Server.Network
             get { return _server != null ? _server.Status : NetPeerStatus.NotRunning; }
         }
 
+        public static List<NetConnection> Connections
+        {
+            get { return _server.Connections; }
+        }
+
         public static void StartListening(int port, int maxConnections)
         {
             var config = new NetPeerConfiguration("Sphaira");
@@ -35,12 +40,23 @@ namespace Sphaira.Server.Network
         }
 
         public static void SendMessage(String ident, Action<NetOutgoingMessage> builder,
-            NetConnection recipient, NetDeliveryMethod method)
+            NetConnection recipient, NetDeliveryMethod method, int sequenceChannel = 0)
         {
             var msg = _server.CreateMessage();
             msg.Write(_indices[ident]);
             builder(msg);
-            _server.SendMessage(msg, recipient, method);
+            _server.SendMessage(msg, recipient, method, sequenceChannel);
+        }
+
+        public static void SendMessage(String ident, Action<NetOutgoingMessage> builder,
+            List<NetConnection> recipients, NetDeliveryMethod method, int sequenceChannel = 0)
+        {
+            if (recipients.Count == 0) return;
+
+            var msg = _server.CreateMessage();
+            msg.Write(_indices[ident]);
+            builder(msg);
+            _server.SendMessage(msg, recipients, method, sequenceChannel);
         }
 
         public static void RegisterIdentifier(String ident)
