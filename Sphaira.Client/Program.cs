@@ -62,6 +62,7 @@ namespace Sphaira.Client
 
         private static int _sSkySeed;
         private static ushort _sMyID;
+        private static int _sQuality;
 
         private static Dictionary<ushort, PlayerInfo> _sPlayers;
 
@@ -106,7 +107,26 @@ namespace Sphaira.Client
             _sMyID = 0xffff;
             _sPlayers = new Dictionary<ushort, PlayerInfo>();
 
-            Console.Write("Please enter hostname: ");
+            var qualities = new[] {
+                "Basic",
+                "FxAA",
+                "FxAA + Bloom"
+            };
+
+            Console.WriteLine("Select a display quality:");
+            for (int i = 0; i < qualities.Length; ++i) {
+                Console.WriteLine("{0}. {1}", i + 1, qualities[i]);
+            }
+
+            while (!int.TryParse(Console.ReadKey(true).KeyChar.ToString(), out _sQuality) ||
+                _sQuality < 1 || _sQuality > qualities.Length);
+
+            _sQuality -= 1;
+
+            Console.WriteLine("Selected {0}", qualities[_sQuality]);
+            Console.WriteLine();
+
+            Console.Write("Server hostname: ");
             NetWrapper.Connect(Console.ReadLine(), 14242);
             NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableOrdered, 0);
             
@@ -152,8 +172,8 @@ namespace Sphaira.Client
                 }
             }
 
-            _frameBuffers = new FrameBuffer[2];
-            for (int i = 0; i < 2; ++i) {
+            _frameBuffers = new FrameBuffer[_sQuality];
+            for (int i = 0; i < _sQuality; ++i) {
                 _frameBuffers[i] = new FrameBuffer(new BitmapTexture2D(Width, Height) {
                     MinFilter = TextureMinFilter.Nearest,
                     MagFilter = TextureMagFilter.Nearest,
@@ -162,8 +182,13 @@ namespace Sphaira.Client
                 }, i == 0 ? 16 : 0);
             }
 
-            BloomShader.Instance.SetScreenSize(Width, Height);
-            FxAAShader.Instance.SetScreenSize(Width, Height);
+            if (_sQuality > 0) {
+                FxAAShader.Instance.SetScreenSize(Width, Height);
+            }
+
+            if (_sQuality > 1) {
+                BloomShader.Instance.SetScreenSize(Width, Height);
+            }
         }
 
         protected override void OnLoad(EventArgs e)
@@ -321,7 +346,8 @@ namespace Sphaira.Client
             var sun = Vector3.Transform(Vector3.UnitX * 8192f,
                 Quaternion.FromAxisAngle(Vector3.UnitY, (float) _timer.Elapsed.TotalSeconds / 12f));
 
-            _frameBuffers[0].Begin();
+            if (_sQuality > 0) _frameBuffers[0].Begin();
+
                 GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
                 var skyShader = SkyShader.Instance;
@@ -333,7 +359,9 @@ namespace Sphaira.Client
                 var sphereShader = SphereShader.Instance;
                 sphereShader.DepthTest = true;
                 sphereShader.Camera = _camera;
+
                 sphereShader.BeginBatch();
+
                     sphereShader.SetUniform("time", (float) _timer.Elapsed.TotalSeconds);
                     sphereShader.SetUniform("sun", sun);
                     sphereShader.Render(_sphere);
@@ -341,16 +369,22 @@ namespace Sphaira.Client
                     foreach (var player in _sPlayers.Values) {
                         sphereShader.Render(player.Sphere);
                     }
-                sphereShader.EndBatch();
-            _frameBuffers[0].End();
 
-            _frameBuffers[1].Begin();
+                sphereShader.EndBatch();
+
+            if (_sQuality > 0) _frameBuffers[0].End();
+
+            if (_sQuality > 1) {
+                _frameBuffers[1].Begin();
                 BloomShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffers[0].Texture;
                 BloomShader.Instance.Render();
-            _frameBuffers[1].End();
+                _frameBuffers[1].End();
+            }
 
-            FxAAShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffers[1].Texture;
-            FxAAShader.Instance.Render();
+            if (_sQuality > 0) {
+                FxAAShader.Instance.FrameTexture = (BitmapTexture2D) _frameBuffers.Last().Texture;
+                FxAAShader.Instance.Render();
+            }
 
             if (_takeScreenShot) TakeScreenShot();
 
