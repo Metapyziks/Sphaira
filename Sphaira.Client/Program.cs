@@ -106,7 +106,8 @@ namespace Sphaira.Client
             _sMyID = 0xffff;
             _sPlayers = new Dictionary<ushort, PlayerInfo>();
 
-            NetWrapper.Connect("localhost", 14242);
+            Console.Write("Please enter hostname: ");
+            NetWrapper.Connect(Console.ReadLine(), 14242);
             NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableOrdered, 0);
             
             while (_sSkySeed == 0) {

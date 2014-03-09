@@ -39,7 +39,7 @@ namespace Sphaira.Client.Graphics
                     float tot = 0;
                     for (int x = -diff; x <= diff; ++x) {
                         for (int y = -diff; y <= diff; ++y) {
-                            float mul = 1 - sqrt(x * x + y * y) / diff;
+                            float mul = 1 - sqrt(float(x * x + y * y)) / diff;
 
                             if (mul <= 0) continue;
 
