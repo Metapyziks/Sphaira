@@ -53,6 +53,11 @@ namespace Sphaira.Client.Network
         public static void Disconnect()
         {
             _client.Disconnect("Quit");
+            _client.FlushSendQueue();
+
+            while (Status != NetConnectionStatus.Disconnected) {
+                if (!CheckForMessages()) Thread.Sleep(16);
+            }
 
             _client = null;
             _connection = null;

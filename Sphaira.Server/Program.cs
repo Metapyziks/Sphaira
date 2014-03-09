@@ -63,9 +63,47 @@ namespace Sphaira.Server
 
         public static int Main(String[] args)
         {
-            var rand = new Random();
+            Console.Write("Sky seed [default random]: ");
 
-            _skySeed = rand.Next(1, int.MaxValue);
+            var seedStr = Console.ReadLine();
+            if (seedStr.Length == 0) seedStr = "0";
+
+            int seed;
+
+            if (!int.TryParse(seedStr, out seed)) {
+                seed = seedStr.GetHashCode();
+            }
+
+            if (seed == 0) {
+                seed = new Random().Next(1, int.MaxValue);
+            }
+
+            float radius = 0f;
+            float density = 0f;
+
+            do {
+                Console.Write("World radius <0.5 - 1024> [default 8]: ");
+                var str = Console.ReadLine();
+
+                if (str.Length == 0) {
+                    radius = 8f;
+                } else {
+                    float.TryParse(str, out radius);
+                }
+            } while (radius < 0.5f || radius > 1024f);
+
+            do {
+                Console.Write("World density <1 - 65536> [default 1024]: ");
+                var str = Console.ReadLine();
+
+                if (str.Length == 0) {
+                    density = 1024f;
+                } else {
+                    float.TryParse(str, out density);
+                }
+            } while (density < 1f || density > 65536f);
+
+            _skySeed = seed;
             _players = new Dictionary<NetConnection, PlayerInfo>();
 
             var timer = new Stopwatch();
@@ -77,6 +115,8 @@ namespace Sphaira.Server
                 var player = GetPlayer(msg.SenderConnection);
                 NetWrapper.SendMessage("WorldInfo", reply => {
                     reply.Write(_skySeed);
+                    reply.Write(radius);
+                    reply.Write(density);
                     reply.Write(timer.Elapsed.TotalSeconds);
                     reply.Write(player.ID);
                 }, msg.SenderConnection, NetDeliveryMethod.ReliableOrdered, 0);

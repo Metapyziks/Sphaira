@@ -37,6 +37,8 @@ namespace Sphaira.Server.Network
 
             _server = new NetServer(config);
             _server.Start();
+
+            Console.WriteLine("Started listening on port {0}", config.Port);
         }
 
         public static void SendMessage(String ident, Action<NetOutgoingMessage> builder,

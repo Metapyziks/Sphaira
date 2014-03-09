@@ -69,6 +69,8 @@ namespace Sphaira.Client
         }
 
         private static int _sSkySeed;
+        private static float _sRadius;
+        private static float _sDensity;
         private static ushort _sMyID;
         private static int _sQuality;
 
@@ -82,6 +84,8 @@ namespace Sphaira.Client
 
             NetWrapper.RegisterMessageHandler("WorldInfo", msg => {
                 _sSkySeed = msg.ReadInt32();
+                _sRadius = msg.ReadFloat();
+                _sDensity = msg.ReadFloat();
                 _sTimerOffset = msg.ReadDouble() + NetWrapper.AverageRoundTripTime * 0.5;
                 _sMyID = msg.ReadUInt16();
 
@@ -208,7 +212,7 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(Vector3.Zero, 8f, 1024f);
+            _sphere = new Sphere(Vector3.Zero, _sRadius, _sDensity);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
             _camera.SkyBox = Starfield.Generate(_sSkySeed);
