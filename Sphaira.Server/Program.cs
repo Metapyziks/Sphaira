@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
+
 using Lidgren.Network;
+
 using OpenTK;
+
 using Sphaira.Server.Network;
 
 namespace Sphaira.Server

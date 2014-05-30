@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK;
+﻿using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
+
 using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
@@ -47,7 +43,7 @@ namespace Sphaira.Client.Graphics
 
         public NebulaShader()
         {
-            BeginMode = BeginMode.Quads;
+            PrimitiveType = PrimitiveType.Quads;
         }
 
         protected override void ConstructVertexShader(ShaderBuilder vert)

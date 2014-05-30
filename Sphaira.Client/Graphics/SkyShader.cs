@@ -1,5 +1,7 @@
 ﻿using System;
+
 using OpenTK.Graphics.OpenGL;
+
 using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
@@ -54,7 +56,7 @@ namespace Sphaira.Client.Graphics
 
         public SkyShader()
         {
-            BeginMode = BeginMode.Quads;
+            PrimitiveType = PrimitiveType.Quads;
         }
 
         protected override void ConstructVertexShader(ShaderBuilder vert)

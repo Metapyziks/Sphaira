@@ -1,10 +1,10 @@
-﻿using System.Drawing;
-using OpenTK;
+﻿using OpenTK;
 using OpenTK.Graphics.OpenGL;
+
 using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
-using OpenTKTK.Textures;
 using OpenTKTK.Utils;
+
 using Sphaira.Shared.Geometry;
 
 namespace Sphaira.Client.Graphics
@@ -31,7 +31,7 @@ namespace Sphaira.Client.Graphics
         public SphereShader()
         {
             DepthTest = true;
-            BeginMode = BeginMode.Quads;
+            PrimitiveType = PrimitiveType.Quads;
         }
 
         protected override void ConstructVertexShader(ShaderBuilder vert)

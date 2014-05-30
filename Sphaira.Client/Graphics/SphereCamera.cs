@@ -1,7 +1,10 @@
 ﻿using System;
+
 using OpenTK;
+
 using OpenTKTK.Scene;
 using OpenTKTK.Textures;
+
 using Sphaira.Shared.Geometry;
 
 namespace Sphaira.Client.Graphics
@@ -51,7 +54,7 @@ namespace Sphaira.Client.Graphics
             EyeHeight = eyeHeight;
             Altitude = EyeHeight;
 
-            _sphereRot = new Quaternion(Vector3.UnitY, 0f);
+            _sphereRot = new Quaternion(Vector3.UnitX, 0f);
             _velocity = Vector3.Zero;
         }
 

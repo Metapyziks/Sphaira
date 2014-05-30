@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using OpenTK.Graphics.OpenGL;
-using OpenTKTK.Scene;
+﻿using OpenTK.Graphics.OpenGL;
+
 using OpenTKTK.Shaders;
 using OpenTKTK.Textures;
 using OpenTKTK.Utils;
@@ -57,7 +52,7 @@ namespace Sphaira.Client.Graphics
 
         public PostProcessShader()
         {
-            BeginMode = BeginMode.Quads;
+            PrimitiveType = PrimitiveType.Quads;
         }
 
         protected override void OnCreate()

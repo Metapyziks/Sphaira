@@ -2,22 +2,25 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Windows.Forms;
+using System.Threading;
+using System.Collections.Generic;
+using System.Linq;
+
 using OpenTK;
 using OpenTK.Graphics;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
-using OpenTKTK.Scene;
-using OpenTKTK.Shaders;
+
 using OpenTKTK.Textures;
 using OpenTKTK.Utils;
+
 using Lidgren.Network;
+
 using Sphaira.Client.Graphics;
 using Sphaira.Shared.Geometry;
-using System.Threading;
 using Sphaira.Client.Network;
-using System.Collections.Generic;
-using System.Linq;
+
+using WFCursor = System.Windows.Forms.Cursor;
 
 namespace Sphaira.Client
 {
@@ -151,8 +154,10 @@ namespace Sphaira.Client
                 if (!NetWrapper.CheckForMessages()) Thread.Sleep(16);
             }
 
-            using (var app = new Program()) {
-                app.Run();
+            using (Toolkit.Init(new ToolkitOptions { Backend = PlatformBackend.PreferNative })) {
+                using (var app = new Program()) {
+                    app.Run();
+                }
             }
 
             NetWrapper.Disconnect();
@@ -174,7 +179,8 @@ namespace Sphaira.Client
         private bool _captureMouse;
         private bool _takeScreenShot;
 
-        public Program() : base(1280, 720, new GraphicsMode(new ColorFormat(8, 8, 8, 0), 32))
+        public Program()
+            : base(1280, 720, new GraphicsMode(new ColorFormat(8, 8, 8, 0), 32))
         {
             Title = "Sphaira";
         }
@@ -229,28 +235,28 @@ namespace Sphaira.Client
                 var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
 
                 if (!Focused || !_captureMouse) return;
-                if (Cursor.Position.X == centre.X && Cursor.Position.Y == centre.Y) return;
+                if (WFCursor.Position.X == centre.X && WFCursor.Position.Y == centre.Y) return;
 
                 _camera.Yaw += me.XDelta / 360f;
                 _camera.Pitch += me.YDelta / 360f;
 
                 _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
 
-                Cursor.Position = centre;
+                WFCursor.Position = centre;
             };
 
             Mouse.ButtonUp += (sender, me) => {
                 if (_captureMouse) return;
 
                 _captureMouse = true;
-                Cursor.Hide();
+                WFCursor.Hide();
             };
 
             Keyboard.KeyDown += (sender, ke) => {
                 switch (ke.Key) {
                     case Key.Escape:
                         _captureMouse = !_captureMouse;
-                        if (_captureMouse) Cursor.Hide(); else Cursor.Show();
+                        if (_captureMouse) WFCursor.Hide(); else WFCursor.Show();
                         break;
                     case Key.Space:
                         if (_camera.Altitude <= _camera.EyeHeight) {
