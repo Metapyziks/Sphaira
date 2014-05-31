@@ -61,7 +61,7 @@ namespace Sphaira.Client
         }
 
         const float StandEyeLevel = 1.7f;
-        const float CrouchEyeLevel = 0.8f;
+        const float CrouchEyeLevel = 8f;
 
         private static Stopwatch _sTimer;
         private static double _sTimerOffset;
@@ -221,7 +221,7 @@ namespace Sphaira.Client
             _sphere = new Sphere(Vector3.Zero, _sRadius, _sDensity);
 
             _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
-            _camera.SkyBox = Starfield.Generate(_sSkySeed);
+            _camera.SkyBox = Starfield.Generate(_sSkySeed, 1024, 4);
 
             _frameTimer = new Stopwatch();
             _lastPosUpdateTimer = new Stopwatch();
@@ -232,13 +232,14 @@ namespace Sphaira.Client
             _frameCounter = 0;
 
             Mouse.Move += (sender, me) => {
+                if (!Focused || !_captureMouse) return;
+
                 var centre = new Point(Bounds.Left + Width / 2, Bounds.Top + Height / 2);
 
-                if (!Focused || !_captureMouse) return;
                 if (WFCursor.Position.X == centre.X && WFCursor.Position.Y == centre.Y) return;
 
-                _camera.Yaw += me.XDelta / 360f;
-                _camera.Pitch += me.YDelta / 360f;
+                _camera.Yaw += (WFCursor.Position.X - centre.X) / 360f;
+                _camera.Pitch += (WFCursor.Position.Y - centre.Y) / 360f;
 
                 _camera.Pitch = Tools.Clamp(_camera.Pitch, -MathHelper.PiOver2, MathHelper.PiOver2);
 

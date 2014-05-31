@@ -1,34 +1,24 @@
-﻿using OpenTK;
+﻿using System;
+
+using OpenTK;
 using OpenTK.Graphics.OpenGL;
 
 using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
 
-using Sphaira.Shared.Geometry;
-
 namespace Sphaira.Client.Graphics
 {
-    public class SphereShader : ShaderProgram3D<Camera>
+    abstract class CelestialBodyShader<T> : ShaderProgram3D<Camera>
+        where T : CelestialBody
     {
         private static VertexBuffer _sVB;
-        private static SphereShader _sInstance;
-
-        public static SphereShader Instance
-        {
-            get
-            {
-                if (_sInstance == null) {
-                    _sInstance = new SphereShader();
-                }
-
-                return _sInstance;
-            }
-        }
 
         public bool DepthTest { get; set; }
 
-        public SphereShader()
+        public bool Blend { get; set; }
+
+        public CelestialBodyShader()
         {
             DepthTest = true;
             PrimitiveType = PrimitiveType.Quads;
@@ -38,14 +28,14 @@ namespace Sphaira.Client.Graphics
         {
             base.ConstructVertexShader(vert);
 
-            vert.AddUniform(ShaderVarType.Vec4, "sphere");
+            vert.AddUniform(ShaderVarType.Vec4, "body");
             vert.AddAttribute(ShaderVarType.Vec2, "in_vertex");
             vert.AddVarying(ShaderVarType.Vec3, "var_position");
             vert.Logic = @"
                 void main(void)
                 {
-                    float r = sphere.w;
-                    vec3 cam = camera - sphere.xyz;
+                    float r = body.w;
+                    vec3 cam = camera - body.xyz;
                     float dist = length(cam);
                     float hyp = sqrt(dist * dist - r * r);
                     float ang = atan(r / hyp);
@@ -58,7 +48,7 @@ namespace Sphaira.Client.Graphics
 
                     var_position = vec3(center + in_vertex.x * right + in_vertex.y * up) / r;
 
-                    gl_Position = proj * view * vec4(sphere.xyz + center + in_vertex.x * right + in_vertex.y * up, 1);
+                    gl_Position = proj * view * vec4(body.xyz + center + in_vertex.x * right + in_vertex.y * up, 1);
                 }
             ";
         }
@@ -67,17 +57,12 @@ namespace Sphaira.Client.Graphics
         {
             base.ConstructFragmentShader(frag);
 
-            frag.AddUniform(ShaderVarType.Vec4, "sphere");
-            frag.AddUniform(ShaderVarType.Vec3, "sun");
-            frag.AddUniform(ShaderVarType.Float, "time");
-            frag.AddUniform(ShaderVarType.Vec4, "light_model");
-            frag.AddUniform(ShaderVarType.Vec3, "colour");
-            frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
-            frag.Logic = SkyShader.SunFragSource + @"
+            frag.AddUniform(ShaderVarType.Vec4, "body");
+            frag.Logic = GetRenderFuncSource() + @"
                 void main(void)
                 {
-                    float r = sphere.w;
-                    vec3 cam = camera - sphere.xyz;
+                    float r = body.w;
+                    vec3 cam = camera - body.xyz;
                     float len2 = dot(var_position, var_position);
 
                     if (len2 > 1) discard;
@@ -88,26 +73,16 @@ namespace Sphaira.Client.Graphics
                     float d = -b + sqrt(b * b - len2 + 1);
 
                     vec3 pos = (var_position + l * d) * r;
-                    vec4 fin = proj * view * vec4(pos + sphere.xyz, 1);
+                    vec4 fin = proj * view * vec4(pos + body.xyz, 1);
 
                     gl_FragDepth = (fin.z / fin.w + 1) / 2;
 
-                    vec3 normal = normalize(pos);
-                    vec3 lookdir = normalize(pos - cam);
-                    vec3 sundir = normalize(sun - camera);
-                    float light = max(1.0 / 32.0, dot(normal, sundir));
-                    float checkSub = ((int(pos.x) + int(pos.y) + int(pos.z)) & 1);
-                    float check = 1 - checkSub * 0.125;
-                    vec3 clr = colour * (light_model.y * check * light * (1 - light_model.x) + light_model.x);
-
-                    vec3 skypos = normalize(reflect(lookdir, normal));
-                    vec3 sky = textureCubeLod(skybox, skypos, 3 - checkSub * 3).rgb;
-                    sky = check * sky * light_model.w + (vec3(1, 1, 1) - sky * light_model.w) * getSun(skypos) * light_model.z;
-
-                    out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * sky, 1);
+                    out_colour = render(pos, cam);
                 }
             ";
         }
+
+        protected abstract String GetRenderFuncSource();
 
         protected override void OnCreate()
         {
@@ -133,6 +108,12 @@ namespace Sphaira.Client.Graphics
             if (DepthTest) {
                 GL.Enable(EnableCap.DepthTest);
             }
+
+            if (Blend) {
+                GL.Enable(EnableCap.Blend);
+
+                GL.BlendFunc(BlendingFactorSrc.SrcAlpha, BlendingFactorDest.OneMinusSrcAlpha);
+            }
         }
 
         public void EndBatch()
@@ -140,17 +121,16 @@ namespace Sphaira.Client.Graphics
             _sVB.End();
         }
 
-        public void Render(Sphere sphere)
+        public void Render(T body)
         {
-            SetUniform("sphere", new Vector4(sphere.Position, sphere.Radius));
-            if (Camera is SphereCamera) {
-                SetTexture("skybox", ((SphereCamera) Camera).SkyBox);
-            }
-
-            SetUniform("light_model", new Vector4(sphere.Ambient, sphere.Diffuse, sphere.Specular, sphere.Reflect));
-            SetUniform("colour", sphere.Colour);
+            OnRender(body);
 
             _sVB.Render();
+        }
+
+        protected virtual void OnRender(T body)
+        {
+            SetUniform("body", new Vector4(body.Position, body.Radius));
         }
 
         protected override void OnEnd()
@@ -159,6 +139,10 @@ namespace Sphaira.Client.Graphics
 
             if (DepthTest) {
                 GL.Disable(EnableCap.DepthTest);
+            }
+
+            if (Blend) {
+                GL.Disable(EnableCap.Blend);
             }
         }
     }

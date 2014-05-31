@@ -10,7 +10,7 @@ namespace Sphaira.Client.Graphics
 {
     public class SkyShader : ShaderProgram3D<Camera>
     {
-        internal static readonly String GetSunSource = @"
+        internal static readonly String SunFragSource = @"
             float getSun(vec3 pos)
             {
                 pos = normalize(pos);
@@ -22,7 +22,7 @@ namespace Sphaira.Client.Graphics
 
                 float mag = max(0, dot(sundir, pos));
                 float ang = atan(dot(lookdir, up), dot(lookdir, right));
-                float mul = sin(ang * 15 + time) * 0.01 + sin(ang * 7 - time * 3) * 0.01 + 0.4;
+                float mul = sin(ang * 15 + time) * 0.02 + sin(ang * 7 - time * 3) * 0.02 + 0.4;
 
                 return max(0, min(1, pow(mag, 512) + pow(mag, 16) * mul));
             }
@@ -83,7 +83,7 @@ namespace Sphaira.Client.Graphics
             frag.AddUniform(ShaderVarType.SamplerCube, "skybox");
             frag.AddUniform(ShaderVarType.Vec3, "sun");
             frag.AddUniform(ShaderVarType.Float, "time");
-            frag.Logic = GetSunSource + @"
+            frag.Logic = SunFragSource + @"
                 void main(void)
                 {
                     vec3 sky = textureCube(skybox, var_texcoord).rgb;

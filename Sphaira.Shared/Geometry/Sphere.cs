@@ -103,9 +103,9 @@ namespace Sphaira.Shared.Geometry
             Colour = new Vector3(1f, 1f, 1f);
 
             Ambient = 0f;
-            Diffuse = 0.5f;
+            Diffuse = 0.25f;
             Specular = 0.75f;
-            Reflect = 0.25f;
+            Reflect = 0.75f;
         }
 
         public float GetGravitationalAcceleration(float altitude)

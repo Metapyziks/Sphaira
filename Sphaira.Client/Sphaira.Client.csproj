@@ -52,13 +52,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Graphics\BloomShader.cs" />
+    <Compile Include="Graphics\CelestialBody.cs" />
+    <Compile Include="Graphics\CelestialBodyShader.cs" />
+    <Compile Include="Graphics\DustCloud.cs" />
+    <Compile Include="Graphics\DustCloudShader.cs" />
     <Compile Include="Graphics\FxAAShader.cs" />
-    <Compile Include="Graphics\NebulaShader.cs" />
     <Compile Include="Graphics\PostProcessShader.cs" />
     <Compile Include="Graphics\SkyShader.cs" />
     <Compile Include="Graphics\SphereShader.cs" />
     <Compile Include="Graphics\SphereCamera.cs" />
+    <Compile Include="Graphics\Star.cs" />
     <Compile Include="Graphics\Starfield.cs" />
+    <Compile Include="Graphics\StarShader.cs" />
     <Compile Include="Network\NetWrapper.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
