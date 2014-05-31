@@ -10,8 +10,12 @@ namespace Sphaira.Client.Graphics
     abstract class CelestialBody
     {
         public static readonly Comparer<CelestialBody> Comparer =
-            Comparer<CelestialBody>.Create((a, b) => a.Position.LengthSquared < b.Position.LengthSquared
-                ? 1 : a.Position.LengthSquared == b.Position.LengthSquared ? 0 : -1);
+            Comparer<CelestialBody>.Create((a, b) => {
+                var av = a.Position.LengthSquared;
+                var bv = b.Position.LengthSquared;
+
+                return av < bv ? -1 : av == bv ? 0 : 1;
+            });
 
         protected static Vector3 GetRandomPosition(Random rand, float near, float far)
         {

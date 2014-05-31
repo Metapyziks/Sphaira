@@ -101,7 +101,7 @@ namespace Sphaira.Client.Graphics
                     vec3 clr = colour * (light_model.y * check * light * (1 - light_model.x) + light_model.x);
 
                     vec3 skypos = normalize(reflect(lookdir, normal));
-                    vec3 sky = textureCubeLod(skybox, skypos, 3 - checkSub * 3).rgb;
+                    vec3 sky = textureCubeLod(skybox, skypos, 2 - checkSub * 2).rgb;
                     sky = check * sky * light_model.w + (vec3(1, 1, 1) - sky * light_model.w) * getSun(skypos) * light_model.z;
 
                     out_colour = vec4(clr + (vec3(1, 1, 1) - clr) * sky, 1);

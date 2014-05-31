@@ -50,7 +50,13 @@ namespace Sphaira.Client
             public PlayerInfo(ushort id)
             {
                 ID = id;
-                Sphere = new Sphere(Vector3.Zero, 0.5f, 0f);
+                Sphere = new Sphere(Vector3.Zero, StandEyeLevel, 0f) {
+                    Specular = 0.5f,
+                    Ambient = 0.25f,
+                    Reflect = 0.5f,
+                    Diffuse = 0.75f,
+                    Colour = new Vector3(0f, 0f, 1f)
+                };
                 Position = Vector3.Zero;
             }
 
@@ -61,7 +67,7 @@ namespace Sphaira.Client
         }
 
         const float StandEyeLevel = 1.7f;
-        const float CrouchEyeLevel = 8f;
+        const float CrouchEyeLevel = 0.8f;
 
         private static Stopwatch _sTimer;
         private static double _sTimerOffset;
@@ -146,8 +152,10 @@ namespace Sphaira.Client
             Console.WriteLine("Selected {0}", qualities[_sQuality]);
             Console.WriteLine();
 
-            Console.Write("Server hostname: ");
-            NetWrapper.Connect(Console.ReadLine(), 14242);
+            Console.Write("Server hostname [default localhost]: ");
+            var hostname = Console.ReadLine();
+
+            NetWrapper.Connect(hostname.Length > 0 ? hostname : "localhost", 14242);
             NetWrapper.SendMessage("WorldInfo", NetDeliveryMethod.ReliableOrdered, 0);
             
             while (_sSkySeed == 0) {
@@ -166,7 +174,7 @@ namespace Sphaira.Client
         }
 
         private SphereCamera _camera;
-        private Sphere _sphere;
+        private List<Sphere> _spheres;
 
         private FrameBuffer[] _frameBuffers;
 
@@ -218,9 +226,11 @@ namespace Sphaira.Client
 
         protected override void OnLoad(EventArgs e)
         {
-            _sphere = new Sphere(Vector3.Zero, _sRadius, _sDensity);
+            _spheres = new List<Sphere> {
+                new Sphere(Vector3.Zero, _sRadius, _sDensity)
+            };
 
-            _camera = new SphereCamera(Width, Height, _sphere, StandEyeLevel);
+            _camera = new SphereCamera(Width, Height, _spheres[0], StandEyeLevel);
             _camera.SkyBox = Starfield.Generate(_sSkySeed, 1024, 4);
 
             _frameTimer = new Stopwatch();
@@ -388,7 +398,10 @@ namespace Sphaira.Client
 
                     sphereShader.SetUniform("time", (float) Time);
                     sphereShader.SetUniform("sun", sun);
-                    sphereShader.Render(_sphere);
+
+                    foreach (var sphere in _spheres) {
+                        sphereShader.Render(sphere);
+                    }
 
                     foreach (var player in _sPlayers.Values) {
                         sphereShader.Render(player.Sphere);
