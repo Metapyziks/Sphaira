@@ -4,6 +4,8 @@ using System.Linq;
 using OpenTK;
 using OpenTK.Graphics;
 
+using Sphaira.Shared.Geometry;
+
 namespace Sphaira.Client.Graphics
 {
     class DustCloud : CelestialBody
@@ -25,8 +27,8 @@ namespace Sphaira.Client.Graphics
             var seta = new Vector3[variation];
             var setb = new Vector3[variation];
             for (int i = 0; i < variation; ++i) {
-                seta[i] = GetRandomPosition(rand, near, far);
-                setb[i] = GetRandomPosition(rand, near, far);
+                seta[i] = Starfield.GetRandomPosition(rand, near, far);
+                setb[i] = Starfield.GetRandomPosition(rand, near, far);
             }
 
             int index = rand.Next(clrPairs.GetLength(0));
@@ -36,7 +38,7 @@ namespace Sphaira.Client.Graphics
             var dusts = new DustCloud[count];
 
             for (int i = 0; i < count; ++i) {
-                var pos = GetRandomPosition(rand, near, far);
+                var pos = Starfield.GetRandomPosition(rand, near, far);
 
                 float scale = (float) Math.Pow(rand.NextDouble(), 4);
 
@@ -59,7 +61,7 @@ namespace Sphaira.Client.Graphics
                 dusts[i] = dust;
             }
 
-            Array.Sort(dusts, Comparer);
+            Array.Sort(dusts, Starfield.Comparer);
 
             return dusts;
         }

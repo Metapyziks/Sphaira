@@ -2,33 +2,9 @@
 
 namespace Sphaira.Shared.Geometry
 {
-    public class Sphere
+    public class Sphere : CelestialBody
     {
         public const float G = 0.00667384f;
-
-        private float _radius;
-
-        private float _volume;
-        private float _mass;
-
-        private bool _volumeChanged;
-        private bool _massChanged;
-
-        public Vector3 Position
-        {
-            get;
-            set;
-        }
-
-        public float Radius
-        {
-            get { return _radius; }
-            set
-            {
-                _radius = value;
-                OnRadiusChanged();
-            }
-        }
 
         public float Density { get; private set; }
 
@@ -36,13 +12,7 @@ namespace Sphaira.Shared.Geometry
         {
             get
             {
-                if (_volumeChanged) {
-                    _volumeChanged = false;
-
-                    _volume = 4f * MathHelper.PiOver3 * Radius * Radius;
-                }
-
-                return _volume;
+                return 4f * MathHelper.PiOver3 * Radius * Radius;
             }
         }
 
@@ -50,13 +20,7 @@ namespace Sphaira.Shared.Geometry
         {
             get
             {
-                if (_massChanged) {
-                    _massChanged = false;
-
-                    _mass = Volume * Density;
-                }
-
-                return _mass;
+                return Volume * Density;
             }
         }
 
@@ -91,38 +55,22 @@ namespace Sphaira.Shared.Geometry
         }
 
         public Sphere(Vector3 pos, float radius, float density)
+            : base(pos, radius)
         {
-            Position = pos;
-
-            Radius = radius;
             Density = density;
-
-            OnRadiusChanged();
-            OnDensityChanged();
 
             Colour = new Vector3(1f, 1f, 1f);
 
             Ambient = 0f;
-            Diffuse = 0.25f;
-            Specular = 0.75f;
-            Reflect = 0.75f;
+            Diffuse = 0.5f;
+            Specular = 0.5f;
+            Reflect = 0.5f;
         }
 
         public float GetGravitationalAcceleration(float altitude)
         {
             var dist = altitude + Radius;
             return G * Mass / (dist * dist);
-        }
-
-        protected virtual void OnRadiusChanged()
-        {
-            _volumeChanged = true;
-            _massChanged = true;
-        }
-
-        protected virtual void OnDensityChanged()
-        {
-            _massChanged = true;
         }
     }
 }

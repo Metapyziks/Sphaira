@@ -7,6 +7,8 @@ using OpenTKTK.Scene;
 using OpenTKTK.Shaders;
 using OpenTKTK.Utils;
 
+using Sphaira.Shared.Geometry;
+
 namespace Sphaira.Client.Graphics
 {
     abstract class CelestialBodyShader<T> : ShaderProgram3D<Camera>

@@ -6,6 +6,8 @@ using OpenTK.Graphics;
 
 using OpenTKTK.Utils;
 
+using Sphaira.Shared.Geometry;
+
 namespace Sphaira.Client.Graphics
 {
     class Star : CelestialBody
@@ -25,14 +27,14 @@ namespace Sphaira.Client.Graphics
 
                 float rad = minRad + (float) Math.Pow(rand.NextDouble(), 16) * (maxRad - minRad);
 
-                var pos = GetRandomPosition(rand, near, far);
+                var pos = Starfield.GetRandomPosition(rand, near, far);
                 var clr = new Color4(0.9f + shift * 0.1f, 0.9f - Math.Abs(shift) * 0.2f, 0.85f - shift * 0.1f, 1f);
                 var star = new Star(pos, rad, clr);
 
                 stars[i] = star;
             }
 
-            Array.Sort(stars, Comparer);
+            Array.Sort(stars, Starfield.Comparer);
 
             return stars;
         }

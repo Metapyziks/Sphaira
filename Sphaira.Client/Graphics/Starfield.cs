@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -9,10 +10,38 @@ using OpenTKTK.Scene;
 using OpenTKTK.Textures;
 using OpenTKTK.Utils;
 
+using Sphaira.Shared.Geometry;
+
 namespace Sphaira.Client.Graphics
 {
     public static class Starfield
     {
+        public static readonly Comparer<CelestialBody> Comparer =
+            Comparer<CelestialBody>.Create((a, b) => {
+                var av = a.Position.LengthSquared;
+                var bv = b.Position.LengthSquared;
+
+                return av < bv ? -1 : av == bv ? 0 : 1;
+            });
+
+        public static Vector3 GetRandomPosition(Random rand, float near, float far)
+        {
+            var dist = far - (far - near) * (float) Math.Pow(rand.NextSingle(), 3);
+
+            Vector3 norm;
+
+            do {
+                norm = 2f * new Vector3(
+                    rand.NextSingle() - .5f,
+                    rand.NextSingle() - .5f,
+                    rand.NextSingle() - .5f);
+            } while (norm.LengthSquared > 1f);
+
+            norm.Normalize();
+
+            return norm.Normalized() * dist;
+        }
+
         public static CubeMapTexture Generate(int seed, int resolution, int samples)
         {
             var rand = seed == 0 ? new Random() : new Random(seed);

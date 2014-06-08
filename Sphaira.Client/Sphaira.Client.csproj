@@ -52,7 +52,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Graphics\BloomShader.cs" />
-    <Compile Include="Graphics\CelestialBody.cs" />
     <Compile Include="Graphics\CelestialBodyShader.cs" />
     <Compile Include="Graphics\DustCloud.cs" />
     <Compile Include="Graphics\DustCloudShader.cs" />
